@@ -2,7 +2,7 @@
 
 A production-ready quantitative financial valuation application implementing the **Option Pricing Model (OPM)**, **Black-Scholes Call Tranches**, **Numerical Root-Finding Equity Backsolve**, **Comparative Liquidation Waterfall**, **Multi-Fund Portfolio Holdings Evaluation (MOIC)**, and **S&P Capital IQ Excel Bridge Integration**.
 
-Designed and reconciled directly against the canonical reference application with pure Python calculation engine, typed FastAPI backend, and latest Angular standalone frontend.
+Implemented on **Java 25** and **Spring Boot 4.x** with full numerical parity, typed REST API, Apache POI Excel bridge, Playwright watermarked PDF generation, and an Angular 22 standalone frontend.
 
 ---
 
@@ -10,32 +10,47 @@ Designed and reconciled directly against the canonical reference application wit
 
 ```
 contingent-analysis/
-├── backend/                             # Python 3.14+ FastAPI Valuation Engine
-│   ├── app/
-│   │   ├── api/                         # REST API Endpoints
-│   │   │   ├── routes_calculate.py      # /api/calculate, /api/validate, /api/scenario/default
-│   │   │   ├── routes_exports.py        # /api/exports/excel, /api/exports/pdf
-│   │   │   ├── routes_risk_free.py      # /api/risk-free-rates/curves, /interpolate
-│   │   │   ├── routes_capital_iq.py     # /api/capital-iq/workbook, /upload
-│   │   │   └── routes_health.py         # /api/health
-│   │   ├── engine/                      # 100% Pure Python Valuation Library
-│   │   │   ├── black_scholes.py         # Analytical European call, N(d1), continuous discount
-│   │   │   ├── date_math.py             # 5 Day-count conventions (US 30/360, Act/Act, etc.)
-│   │   │   ├── capitalization.py        # Derivation, simple & compound dividend accruals
-│   │   │   ├── breakpoints.py           # Seniority LP schedule, conversion, warrant exercise
-│   │   │   ├── claims.py                # Dollar & percentage claims across breakpoint tiers
-│   │   │   ├── opm.py                   # Incremental call tranches & Brent's root-finder backsolve
-│   │   │   ├── waterfall.py             # Sequential liquidation & pro-rata recovery
-│   │   │   ├── holdings.py              # Multi-fund position aggregation & MOIC
-│   │   │   ├── risk_free_rates.py       # US Treasury / ECB yield curve interpolation
-│   │   │   ├── volatility.py            # Merton asset volatility delevering & relevering
-│   │   │   ├── capital_iq.py            # Capital IQ plugin template generator & parser
-│   │   │   ├── exports_excel.py         # Presentation-grade multi-tab OpenPyXL workbook
-│   │   │   ├── exports_pdf.py           # Landscape Playwright PDF with "HIGHLY CONFIDENTIAL" watermark
-│   │   │   ├── validation.py            # Cap table consistency & input validation
-│   │   │   └── pipeline.py              # End-to-end execution orchestrator
-│   │   └── main.py                      # FastAPI application & static Angular mount
-│   └── tests/                           # 22 Comprehensive automated test suites
+├── backend/                             # Java 25 + Spring Boot 4.x Valuation Engine (Maven)
+│   ├── pom.xml                          # Dependencies: Spring Boot 4.1.1, Apache POI 5.5.0, Playwright 1.58.0, Commons Math 3.6.1, PDFBox 3.0.4
+│   └── src/
+│       ├── main/
+│       │   ├── java/com/example/contingentanalysis/
+│       │   │   ├── api/                 # Spring Web MVC REST Controllers
+│       │   │   │   ├── CalculateController.java     # /api/calculate, /api/validate, /api/scenario/default, /api/basis-conventions
+│       │   │   │   ├── ExportController.java        # /api/exports/excel, /api/exports/pdf
+│       │   │   │   ├── RiskFreeRatesController.java # /api/risk-free-rates/curves, /interpolate
+│       │   │   │   ├── CapitalIqController.java     # /api/capital-iq/workbook, /upload
+│       │   │   │   ├── HealthController.java        # /api/health
+│       │   │   │   ├── FrontendController.java      # Static Angular mount & SPA routing
+│       │   │   │   └── ApiExceptionHandler.java     # Global REST exception advice (HTTP 400/500)
+│       │   │   ├── config/              # Web MVC, CORS, and Jackson configuration
+│       │   │   ├── domain/              # Pure Java Valuation Domain Layer
+│       │   │   │   ├── blackscholes/    # Analytical European call, N(d1), continuous compounding
+│       │   │   │   ├── breakpoints/     # Seniority LP schedule, conversion, warrant exercise
+│       │   │   │   ├── capitaliq/       # Capital IQ plugin template generator & parser
+│       │   │   │   ├── capitalization/  # Derivation, simple & compound dividend accruals
+│       │   │   │   ├── claims/          # Dollar & percentage claims across breakpoint tiers
+│       │   │   │   ├── date/            # 5 Day-count conventions (US 30/360, Act/Act, Act/360, Act/365, Euro 30/360)
+│       │   │   │   ├── defaultscenario/ # Canonical pre-populated TADO valuation scenario
+│       │   │   │   ├── exports/         # Apache POI Excel workbook & Playwright landscape PDF with watermark
+│       │   │   │   ├── holdings/        # Multi-fund position aggregation & MOIC
+│       │   │   │   ├── model/           # Strongly-typed domain models matching TypeScript contracts
+│       │   │   │   ├── opm/             # Incremental call tranches & Brent's root-finder backsolve
+│       │   │   │   ├── pipeline/        # End-to-end execution orchestrator
+│       │   │   │   ├── riskfree/        # US Treasury & ECB yield curve interpolation
+│       │   │   │   ├── validation/      # Cap table consistency & input validation
+│       │   │   │   ├── volatility/      # Merton asset volatility delevering & relevering
+│       │   │   │   └── waterfall/       # Sequential liquidation & comparative pro-rata distribution
+│       │   │   └── ContingentAnalysisApplication.java # Spring Boot application entrypoint
+│       │   └── resources/
+│       │       └── application.yml      # Server port 8000, Jackson snake_case property naming
+│       └── test/
+│           └── java/com/example/contingentanalysis/
+│               ├── ApiEndpointsTest.java         # 8 MockMvc integration tests for all REST endpoints
+│               ├── BoundaryConditionsTest.java   # 10 Boundary and mathematical edge condition tests
+│               ├── ExportsTest.java              # 2 Tests verifying 7-sheet Excel and watermarked PDF exports
+│               ├── GoldenReconciliationTest.java # 6 Canonical numerical parity reconciliation tests
+│               └── PipelineTest.java             # 1 Full end-to-end pipeline test
 ├── frontend/                            # Angular 22 Standalone Application
 │   ├── src/
 │   │   ├── app/
@@ -47,13 +62,12 @@ contingent-analysis/
 │   │   │   │   ├── client-holdings-editor/# Multi-fund portfolio editor & subtotal summaries
 │   │   │   │   ├── capital-iq-modal/    # CIQ bridge template generator & file upload dropzone
 │   │   │   │   └── report-exhibits/     # Executive exhibits 1.0 through 11.0
-│   │   │   ├── models/                  # TypeScript data interfaces matching Pydantic
+│   │   │   ├── models/                  # TypeScript data interfaces matching Java domain models
 │   │   │   ├── services/                # API client & reactive signal state management
 │   │   │   ├── app.ts                   # Main application root component
 │   │   │   └── app.html                 # Workspace view switcher & loading overlays
 │   │   └── styles.scss                  # Executive visual theme & styling system
-├── golden_reference/                    # Canonical JavaScript run outputs (87 KB JSON)
-└── pytest.ini                           # Pytest configuration
+└── golden_reference/                    # Canonical JavaScript run outputs (87 KB JSON)
 ```
 
 ---
@@ -61,20 +75,24 @@ contingent-analysis/
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- **Python**: 3.11+ (tested on Python 3.14.7)
+- **Java**: OpenJDK 25+
+- **Maven**: 3.9+
 - **Node.js**: 20+ (tested on Node.js v24.21.0, npm 11.19.0)
 
-### 1. Backend Setup & Test Suite Execution
-```bash
-# Activate virtual environment
-.\backend\.venv\Scripts\Activate.ps1
-
-# Run all 22 test suites (reconciliation, boundary conditions, exports, API)
-python -m pytest backend/tests/ -v
+### 1. Backend Test Suite Execution
+```powershell
+cd backend
+mvn clean test
 ```
+All 27 test cases will execute:
+- Golden reference numerical parity tests
+- Boundary conditions and edge cases
+- Apache POI multi-sheet Excel workbook export tests
+- Playwright landscape PDF watermarking tests
+- Full MockMvc REST API integration tests
 
 ### 2. Frontend Development & Build
-```bash
+```powershell
 cd frontend
 
 # Run unit tests
@@ -85,14 +103,15 @@ npm run build
 ```
 
 ### 3. Running the Unified Server
-When the frontend is built, FastAPI automatically serves the Angular application at the root (`/`) while exposing the REST API at (`/api`):
-```bash
-.\backend\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+When the frontend is built, Spring Boot automatically serves the Angular application at the root (`/`) while exposing the REST API at (`/api`):
+```powershell
+cd backend
+mvn spring-boot:run
 ```
 Open your browser to: **`http://localhost:8000`**
 
 To run Angular in live development mode with hot reload:
-```bash
+```powershell
 cd frontend
 npm start
 # App running at http://localhost:4200 (proxies /api to http://localhost:8000)
@@ -102,9 +121,9 @@ npm start
 
 ## 🧮 Numerical Reconciliation Results
 
-All calculations match canonical reference outputs within strict tolerance:
+All calculations match canonical golden reference outputs within strict tolerance:
 
-| Metric | Golden Reference | Python Engine | Reconciled Variance |
+| Metric | Golden Reference | Java Engine | Reconciled Variance |
 | :--- | :--- | :--- | :--- |
 | **Calibration Solved Equity** | €287,252,502.92 | €287,252,502.92 | **€0.00** |
 | **Series I Backsolved Value** | €2,021.9000 | €2,021.9000 | **€0.0000** |
@@ -128,7 +147,7 @@ All calculations match canonical reference outputs within strict tolerance:
 2. **Option Pricing Model & Breakpoint Generation**:
    - Analytical Black-Scholes call option pricing with continuous compounding.
    - Automated breakpoint scheduling with exact warrant handling logic.
-   - High-precision root-finding equity backsolve via `scipy.optimize.brentq`.
+   - High-precision root-finding equity backsolve via Apache Commons Math `BrentSolver`.
 3. **Multi-Fund Client Holdings (Exhibit 1.0)**:
    - Aggregates positions across funds/vehicles.
    - Computes individual class ownership %, fully diluted ownership %, fair market value, and MOIC.
@@ -139,4 +158,3 @@ All calculations match canonical reference outputs within strict tolerance:
 5. **Server-Side Watermarked PDF Generation**:
    - Headless Playwright Chromium rendering of landscape executive exhibit report.
    - Semi-transparent diagonal **"HIGHLY CONFIDENTIAL"** watermark on every page.
-

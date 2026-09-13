@@ -1,0 +1,20 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: contingent-claims-valuation-engine
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: ALWAYS
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 20MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
