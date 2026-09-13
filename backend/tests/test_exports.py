@@ -83,6 +83,7 @@ def sample_valuation_response():
         rf_calibration_continuous=to_continuous_rate(inputs["rfCal"]) * 100.0,
         rf_valuation_effective=inputs["rfVal"] * 100.0,
         rf_valuation_continuous=to_continuous_rate(inputs["rfVal"]) * 100.0,
+        calibration_security_name="Series I",
         calibration_derived_securities=cal_derived,
         calibration_breakpoints=cal_bps,
         calibration_claims=cal_claims,

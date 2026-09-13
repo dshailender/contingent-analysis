@@ -58,6 +58,28 @@ async def test_api_default_scenario_and_calculate():
 
 
 @pytest.mark.asyncio
+async def test_api_calculate_with_deleted_calibration_security():
+    """Verify POST /api/calculate auto-resolves when calibration_security_name is missing or deleted."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp_def = await client.get("/api/scenario/default")
+        req_data = resp_def.json()
+
+        # Delete Series I from calibration cap table
+        del req_data["calibration_securities"][0]
+        # Keep calibration_security_name as 'Series I'
+        req_data["calibration_security_name"] = "Series I"
+
+        resp_calc = await client.post("/api/calculate", json=req_data)
+        assert resp_calc.status_code == 200
+        data = resp_calc.json()
+        assert data["calibration_security_name"] == "Series H"
+        assert data["calibration_solved_equity"] > 0
+        assert "Series H" in data["calibration_opm"]["per_share_values"]
+
+
+
+@pytest.mark.asyncio
 async def test_api_risk_free_curves():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

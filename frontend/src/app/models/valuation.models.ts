@@ -271,6 +271,7 @@ export interface ValuationResponse {
   rf_calibration_continuous: number;
   rf_valuation_effective: number;
   rf_valuation_continuous: number;
+  calibration_security_name?: string;
   calibration_derived_securities: DerivedSecurity[];
   calibration_breakpoints: BreakpointTier[];
   calibration_claims: ClaimTierAllocation[];

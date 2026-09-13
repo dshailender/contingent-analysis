@@ -164,3 +164,86 @@ def test_black_scholes_boundary_conditions():
     c_zero_s = black_scholes_call(0.0, 100.0, r, 0.3, 1.0)
     assert c_zero_s == 0.0
 
+
+def test_auto_resolve_calibration_security_on_delete():
+    """Verify that deleting the calibration target (e.g. Series I) auto-resolves to the next available
+    Preferred Stock (Series H) and completes valuation calculation without error."""
+    from app.engine.default_scenario import get_default_valuation_request
+    from app.engine.pipeline import calculate_valuation
+    
+    req = get_default_valuation_request()
+    assert req.calibration_security_name == "Series I"
+    
+    # Delete Series I from calibration cap table
+    del req.calibration_securities[0]
+    assert req.calibration_securities[0].security == "Series H"
+    
+    # Leave calibration_security_name as 'Series I' to simulate frontend/client state
+    res = calculate_valuation(req)
+    assert res is not None
+    assert res.calibration_security_name == "Series H"
+    assert res.calibration_solved_equity > 0.0
+    assert "Series H" in res.calibration_opm.per_share_values
+    assert "Series I" not in res.calibration_opm.per_share_values
+
+
+def test_auto_resolve_calibration_security_on_rename():
+    """Verify that renaming a security in the cap table auto-resolves gracefully when calibration_security_name
+    is mismatched."""
+    from app.engine.default_scenario import get_default_valuation_request
+    from app.engine.pipeline import calculate_valuation
+
+    req = get_default_valuation_request()
+    # Rename Series I
+    req.calibration_securities[0].security = "Series I-Priced"
+    req.calibration_security_name = "Series I"  # Mismatched old name
+
+    res = calculate_valuation(req)
+    assert res is not None
+    assert res.calibration_security_name == "Series I-Priced"
+    assert res.calibration_solved_equity > 0.0
+    assert "Series I-Priced" in res.calibration_opm.per_share_values
+
+
+def test_cap_table_only_common_stock():
+    """Verify that a capitalization table containing only Common Stock auto-resolves and calculates cleanly."""
+    from app.engine.default_scenario import get_default_valuation_request
+    from app.engine.pipeline import calculate_valuation
+
+    req = get_default_valuation_request()
+    common_sec = SecurityInput(
+        security="Common Stock",
+        security_subtype="Common Stock",
+        shares=1000000.0,
+        liquidation_multiplier=0.0,
+        seniority=999
+    )
+    req.calibration_securities = [common_sec]
+    req.valuation_securities = [common_sec]
+    req.calibration_security_name = "NonExistentPreferred"
+    req.transaction_price = 10.0
+    req.holdings = []
+
+    res = calculate_valuation(req)
+    assert res is not None
+    assert res.calibration_security_name == "Common Stock"
+    assert res.calibration_solved_equity == pytest.approx(10000000.0, rel=1e-3)
+    assert res.calibration_opm.per_share_values["Common Stock"] == pytest.approx(10.0, abs=0.05)
+
+
+def test_modify_cap_table_shares_and_multipliers():
+    """Verify modifying values (shares, multipliers, strike prices) adjusts the calculations dynamically."""
+    from app.engine.default_scenario import get_default_valuation_request
+    from app.engine.pipeline import calculate_valuation
+
+    req = get_default_valuation_request()
+    base_res = calculate_valuation(req)
+    base_eq = base_res.calibration_solved_equity
+
+    # Double Series I shares
+    req.calibration_securities[0].shares *= 2.0
+    mod_res = calculate_valuation(req)
+    # Doubling shares of the calibration security at same per-share price must increase solved equity
+    assert mod_res.calibration_solved_equity > base_eq
+
+

@@ -92,7 +92,8 @@ import { SecurityInput } from '../../models/valuation.models';
                     <input 
                       type="text" 
                       [(ngModel)]="sec.security" 
-                      (change)="onRowChange()"
+                      (focus)="onSecurityNameFocus(sec.security)"
+                      (change)="onSecurityNameChange(sec)"
                       aria-label="Security class name"
                       placeholder="e.g. Series B Preferred"
                       [class.invalid]="!sec.security.trim()" />
@@ -422,7 +423,33 @@ export class CapTableEditorComponent {
     this.onRowChange();
   }
 
+  private previousSecurityName: string = '';
+
+  onSecurityNameFocus(name: string): void {
+    this.previousSecurityName = (name || '').trim();
+  }
+
+  onSecurityNameChange(sec: SecurityInput): void {
+    const newName = (sec.security || '').trim();
+    if (this.selectedTable() === 'calibration') {
+      const currentCalSec = this.state.request()?.calibration_security_name?.trim();
+      if (this.previousSecurityName && currentCalSec === this.previousSecurityName && newName) {
+        this.state.request.update(r => r ? { ...r, calibration_security_name: newName } : null);
+      }
+    }
+    if (this.selectedTable() === 'valuation' && this.previousSecurityName && newName) {
+      this.state.request.update(r => {
+        if (!r) return null;
+        const updatedHoldings = r.holdings.map(h => h.security === this.previousSecurityName ? { ...h, security: newName } : h);
+        return { ...r, holdings: updatedHoldings };
+      });
+    }
+    this.previousSecurityName = newName;
+    this.onRowChange();
+  }
+
   onRowChange(): void {
+    this.state.ensureValidCalibrationSecurity();
     this.state.calculate();
   }
 }

@@ -30,15 +30,49 @@ export class ValuationStateService {
     const req = this.request();
     if (!req) return [];
     return req.calibration_securities
-      .filter(s => s.security_subtype === 'Preferred Stock')
-      .map(s => s.security);
+      .filter(s => s.security_subtype === 'Preferred Stock' && s.security?.trim())
+      .map(s => s.security.trim());
+  });
+
+  readonly availableCalibrationSecurities = computed(() => {
+    const req = this.request();
+    if (!req) return [];
+    const prefs = req.calibration_securities
+      .filter(s => s.security_subtype === 'Preferred Stock' && s.security?.trim())
+      .map(s => s.security.trim());
+    const others = req.calibration_securities
+      .filter(s => s.security_subtype !== 'Preferred Stock' && s.security?.trim())
+      .map(s => s.security.trim());
+    return [...prefs, ...others];
   });
 
   readonly availableValuationSecurities = computed(() => {
     const req = this.request();
     if (!req) return [];
-    return req.valuation_securities.map(s => s.security);
+    return req.valuation_securities
+      .filter(s => s.security?.trim())
+      .map(s => s.security.trim());
   });
+
+  ensureValidCalibrationSecurity(): void {
+    const req = this.request();
+    if (!req || !req.calibration_securities?.length) return;
+    const allSecs = req.calibration_securities
+      .map(s => s.security?.trim())
+      .filter((s): s is string => !!s);
+    
+    if (allSecs.length === 0) return;
+
+    const current = req.calibration_security_name?.trim();
+    if (!current || !allSecs.includes(current)) {
+      const preferred = req.calibration_securities
+        .find(s => s.security_subtype === 'Preferred Stock' && s.security?.trim())?.security?.trim();
+      const fallback = preferred || allSecs[0];
+      if (fallback && fallback !== req.calibration_security_name) {
+        this.request.update(r => r ? { ...r, calibration_security_name: fallback } : null);
+      }
+    }
+  }
 
   constructor() {
     this.loadDefaultScenario();
@@ -60,6 +94,7 @@ export class ValuationStateService {
   }
 
   calculate(): void {
+    this.ensureValidCalibrationSecurity();
     const req = this.request();
     if (!req) return;
 
@@ -70,6 +105,9 @@ export class ValuationStateService {
         this.response.set(res);
         this.validationIssues.set([]);
         this.loading.set(false);
+        if (res.calibration_security_name && res.calibration_security_name !== this.request()?.calibration_security_name) {
+          this.request.update(r => r ? { ...r, calibration_security_name: res.calibration_security_name! } : null);
+        }
       },
       error: (err) => {
         this.loading.set(false);
@@ -133,8 +171,13 @@ export class ValuationStateService {
       if (!r) return null;
       if (target === 'calibration') {
         const rows = [...r.calibration_securities];
-        rows.splice(index, 1);
-        return { ...r, calibration_securities: rows };
+        const removed = rows.splice(index, 1)[0];
+        let newCalSec = r.calibration_security_name;
+        if (removed && removed.security?.trim() === r.calibration_security_name?.trim()) {
+          const nextPref = rows.find(s => s.security_subtype === 'Preferred Stock' && s.security?.trim())?.security?.trim();
+          newCalSec = nextPref || rows[0]?.security?.trim() || '';
+        }
+        return { ...r, calibration_securities: rows, calibration_security_name: newCalSec };
       } else {
         const rows = [...r.valuation_securities];
         rows.splice(index, 1);

@@ -303,6 +303,7 @@ class ValuationResponse(BaseModel):
     rf_valuation_continuous: float
     
     # Calibration Analysis
+    calibration_security_name: str
     calibration_derived_securities: List[DerivedSecurity]
     calibration_breakpoints: List[BreakpointTier]
     calibration_claims: List[ClaimTierAllocation]

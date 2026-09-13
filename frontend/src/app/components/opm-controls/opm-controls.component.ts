@@ -32,7 +32,7 @@ import { ValuationStateService } from '../../services/valuation-state.service';
               <div class="field-group">
                 <label for="calSec">Calibration Target Class <span class="req">*</span></label>
                 <select id="calSec" [(ngModel)]="req.calibration_security_name" (change)="state.calculate()">
-                  @for (name of state.availablePreferredSecurities(); track name) {
+                  @for (name of state.availableCalibrationSecurities(); track name) {
                     <option [value]="name">{{ name }}</option>
                   }
                 </select>

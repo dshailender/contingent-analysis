@@ -67,10 +67,20 @@ def validate_valuation_request(req: ValuationRequest) -> List[str]:
     issues.extend(validate_securities(req.calibration_securities, "Calibration Date Cap Table"))
     issues.extend(validate_securities(req.valuation_securities, "Valuation Date Cap Table"))
 
-    # Validate calibration security
-    cal_names = [s.security for s in req.calibration_securities]
-    if req.calibration_security_name not in cal_names:
-        issues.append(f"Calibration security '{req.calibration_security_name}' not found in Calibration Date Cap Table.")
+    # Validate and auto-resolve calibration security
+    cal_names = [s.security.strip() for s in req.calibration_securities if s.security and s.security.strip()]
+    if not cal_names:
+        issues.append("Calibration Date Cap Table must contain at least one valid security class.")
+    elif req.calibration_security_name.strip() not in cal_names:
+        # Graceful auto-resolution: pick first available Preferred Stock or first valid security
+        preferred = next(
+            (s.security.strip() for s in req.calibration_securities 
+             if s.security_subtype == "Preferred Stock" and s.security and s.security.strip()),
+            None
+        )
+        req.calibration_security_name = preferred or cal_names[0]
+    else:
+        req.calibration_security_name = req.calibration_security_name.strip()
 
     if req.transaction_price <= 0.0:
         issues.append("Observed Transaction Price must be greater than 0.")

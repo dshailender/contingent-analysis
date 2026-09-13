@@ -154,6 +154,7 @@ def calculate_valuation(request: ValuationRequest) -> ValuationResponse:
         rf_calibration_continuous=rf_cal_cont,
         rf_valuation_effective=request.rf_valuation,
         rf_valuation_continuous=rf_val_cont,
+        calibration_security_name=request.calibration_security_name,
         calibration_derived_securities=cal_derived,
         calibration_breakpoints=cal_bps,
         calibration_claims=cal_claims,
