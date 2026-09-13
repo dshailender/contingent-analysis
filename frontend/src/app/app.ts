@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ValuationStateService } from './services/valuation-state.service';
 import { HeaderComponent } from './components/header/header.component';
@@ -27,4 +27,13 @@ import { ReportExhibitsComponent } from './components/report-exhibits/report-exh
 })
 export class App {
   readonly state = inject(ValuationStateService);
+  readonly validationDismissed = signal(false);
+
+  dismissValidation(): void {
+    this.validationDismissed.set(true);
+  }
+
+  showValidation(): void {
+    this.validationDismissed.set(false);
+  }
 }

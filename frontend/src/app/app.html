@@ -3,25 +3,50 @@
   <app-header></app-header>
 
   <!-- Global Validation Alert Bar -->
-  @if (state.validationIssues().length > 0) {
-    <div class="alert-box">
-      <strong>⚠️ Model Validation Issues ({{ state.validationIssues().length }}):</strong>
-      <ul>
+  @if (state.validationIssues().length > 0 && !validationDismissed()) {
+    <section class="alert-box warning" role="alert" aria-live="polite">
+      <div class="alert-header">
+        <div class="alert-title">
+          <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <strong>Model Validation Alerts ({{ state.validationIssues().length }})</strong>
+        </div>
+        <button class="alert-dismiss-btn" (click)="dismissValidation()" aria-label="Dismiss validation alerts" title="Dismiss alerts">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <ul class="alert-list">
         @for (issue of state.validationIssues(); track issue) {
           <li>{{ issue }}</li>
         }
       </ul>
-    </div>
+    </section>
   }
 
   @if (state.error()) {
-    <div class="alert-box">
-      <strong>⚠️ Error:</strong> {{ state.error() }}
-    </div>
+    <section class="alert-box danger" role="alert" aria-live="assertive">
+      <div class="alert-header">
+        <div class="alert-title">
+          <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <strong>System Error: {{ state.error() }}</strong>
+        </div>
+        <button class="alert-action-btn" (click)="state.loadDefaultScenario()">Reload Default</button>
+      </div>
+    </section>
   }
 
   <!-- Active Tab Workspace -->
-  <main class="main-content">
+  <main class="main-content" id="main-content">
     @switch (state.activeTab()) {
       @case ('inputs') {
         <app-engagement-settings></app-engagement-settings>
@@ -45,10 +70,86 @@
   </main>
 </div>
 
+<!-- Persistent Institutional Action Strip -->
+<footer class="bottom-dock no-print" role="contentinfo" aria-label="Valuation status and quick actions">
+  <div class="dock-container">
+    <div class="dock-status">
+      @if (state.validationIssues().length === 0 && state.response()) {
+        <span class="status-pill reconciled" title="All OPM equity allocations reconciled to 100.00%">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Model Reconciled
+        </span>
+      } @else if (state.validationIssues().length > 0) {
+        <button class="status-pill unreconciled-btn" (click)="showValidation()" title="Click to view validation issues">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ state.validationIssues().length }} Issues (View)
+        </button>
+      }
+
+      @if (state.response(); as res) {
+        <span class="dock-meta-item">
+          <span class="dock-label">Concluded Equity:</span>
+          <strong class="dock-val tabular">{{ state.currencySymbol() }}{{ res.concluded_equity_value | number:'1.0-0' }}</strong>
+        </span>
+        <span class="dock-meta-item">
+          <span class="dock-label">Solved Calibration:</span>
+          <strong class="dock-val tabular">{{ state.currencySymbol() }}{{ res.calibration_solved_equity | number:'1.0-0' }}</strong>
+        </span>
+      }
+    </div>
+
+    <div class="dock-actions">
+      <button class="btn secondary small-btn" (click)="state.calculate()" [disabled]="state.loading()" title="Recalculate entire valuation model">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        <span>Recalculate</span>
+      </button>
+
+      @if (state.activeTab() !== 'exhibits') {
+        <button class="btn secondary small-btn" (click)="state.activeTab.set('exhibits')" title="Jump to Report Exhibits">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <span>Exhibits</span>
+        </button>
+      }
+
+      <button class="btn excel small-btn" (click)="state.downloadExcel()" [disabled]="state.loading()" title="Download multi-tab audited Excel model">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Excel</span>
+      </button>
+
+      <button class="btn pdf small-btn" (click)="state.downloadPdf()" [disabled]="state.loading()" title="Download A4 landscape watermarked valuation PDF book">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <circle cx="10" cy="13" r="2"/>
+        </svg>
+        <span>PDF</span>
+      </button>
+    </div>
+  </div>
+</footer>
+
 <!-- Loading Overlay -->
 @if (state.loading()) {
-  <div class="loading-overlay">
-    <div class="spinner"></div>
+  <div class="loading-overlay" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
     <p>Calculating valuation model & tranches...</p>
   </div>
 }

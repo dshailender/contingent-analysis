@@ -53,18 +53,24 @@ def render_pdf_html(res: ValuationResponse) -> str:
 <meta charset="utf-8">
 <style>
   @page {{
-    size: 11in 8.5in landscape;
-    margin: 0.35in 0.4in;
+    size: 297mm 210mm landscape;
+    margin: 8mm 10mm;
   }}
   * {{ box-sizing: border-box; }}
   body {{
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #17242B;
+    color: #111827;
     background: #FFFFFF;
     margin: 0;
     padding: 0;
-    font-size: 8pt;
-    line-height: 1.3;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    -webkit-font-smoothing: antialiased;
+  }}
+
+  /* Tabular numbers for financial precision */
+  table.data-table, .tabular, .kpi-val, td, th {{
+    font-variant-numeric: tabular-nums lining-nums;
   }}
 
   /* Fixed repeating watermark on every single page */
@@ -80,7 +86,7 @@ def render_pdf_html(res: ValuationResponse) -> str:
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    opacity: 0.055;
+    opacity: 0.045;
     transform: rotate(-30deg);
   }}
   .watermark-text {{
@@ -96,7 +102,7 @@ def render_pdf_html(res: ValuationResponse) -> str:
     font-size: 18pt;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #0B6B68;
+    color: #08615E;
     margin-top: 8px;
     text-transform: uppercase;
   }}
@@ -119,23 +125,25 @@ def render_pdf_html(res: ValuationResponse) -> str:
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 7.2in;
-    padding: 0.6in 0.8in;
-    background: linear-gradient(135deg, #17242B 0%, #29454C 55%, #0B6B68 100%);
+    height: 185mm;
+    padding: 16mm 22mm;
+    background: linear-gradient(135deg, #131b24 0%, #1e3a40 55%, #08615e 100%);
     color: #FFFFFF;
-    border-radius: 12px;
+    border-radius: 10px;
   }}
   .cover-title {{
-    font-size: 30pt;
+    font-size: 28pt;
     font-weight: 800;
     letter-spacing: -0.02em;
     margin-bottom: 8px;
+    color: #FFFFFF;
   }}
   .cover-subtitle {{
-    font-size: 14pt;
-    color: #E9F5F2;
+    font-size: 13.5pt;
+    color: #E6F4F2;
     margin-bottom: 36px;
     max-width: 850px;
+    line-height: 1.4;
   }}
   .cover-meta-grid {{
     display: grid;
@@ -153,6 +161,7 @@ def render_pdf_html(res: ValuationResponse) -> str:
     letter-spacing: 0.08em;
     color: #A9D6CF;
     margin-bottom: 3px;
+    font-weight: 600;
   }}
   .cover-meta-item value {{
     font-size: 12pt;
@@ -165,57 +174,58 @@ def render_pdf_html(res: ValuationResponse) -> str:
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    border-bottom: 2px solid #0B6B68;
+    border-bottom: 2px solid #08615E;
     padding-bottom: 5px;
     margin-bottom: 10px;
   }}
   .exhibit-num {{
-    font-size: 8.5pt;
+    font-size: 9pt;
     font-weight: 800;
-    color: #0B6B68;
+    color: #08615E;
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }}
   .exhibit-title {{
-    font-size: 13pt;
+    font-size: 13.5pt;
     font-weight: 800;
-    color: #17242B;
+    color: #111827;
     margin: 1px 0 0;
   }}
   .header-meta {{
     text-align: right;
-    font-size: 7.5pt;
-    color: #687386;
+    font-size: 8pt;
+    color: #4B5563;
+    line-height: 1.35;
   }}
 
   /* Table styling */
   table.data-table {{
     width: 100%;
     border-collapse: collapse;
-    font-size: 7.5pt;
+    font-size: 8pt;
     margin-top: 6px;
     margin-bottom: 8px;
   }}
   table.data-table th {{
-    background: #29454C;
+    background: #1e3a40;
     color: #FFFFFF;
     font-weight: 700;
-    padding: 4px 5px;
+    padding: 5px 6px;
     text-align: right;
-    border: 1px solid #1E343A;
-    font-size: 7pt;
-    line-height: 1.2;
+    border: 1px solid #14282c;
+    font-size: 8pt;
+    line-height: 1.25;
   }}
   table.data-table th:first-child {{
     text-align: left;
   }}
   table.data-table td {{
-    padding: 3px 5px;
-    border-bottom: 1px solid #DCE1E7;
-    border-left: 1px solid #ECEFF3;
-    border-right: 1px solid #ECEFF3;
+    padding: 3.5px 6px;
+    border-bottom: 1px solid #D1D5DB;
+    border-left: 1px solid #E5E7EB;
+    border-right: 1px solid #E5E7EB;
     text-align: right;
-    font-size: 7.5pt;
+    font-size: 8pt;
     white-space: nowrap;
   }}
   table.data-table td:first-child {{
@@ -223,19 +233,20 @@ def render_pdf_html(res: ValuationResponse) -> str:
     font-weight: 500;
   }}
   table.data-table tr:nth-child(even) {{
-    background: #FBFDFD;
+    background: #F9FAFB;
   }}
   table.data-table tr.total-row td {{
     font-weight: 800;
     background: #EDF6F4;
-    border-top: 2px solid #0B6B68;
-    border-bottom: 2px solid #0B6B68;
+    border-top: 2px solid #08615E;
+    border-bottom: 2px solid #08615E;
+    color: #0F172A;
   }}
 
   .section-subtitle {{
-    font-size: 8.5pt;
+    font-size: 9pt;
     font-weight: 700;
-    color: #234F7D;
+    color: #1e3a40;
     margin: 10px 0 3px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -254,32 +265,32 @@ def render_pdf_html(res: ValuationResponse) -> str:
     padding: 6px 10px;
   }}
   .kpi-label {{
-    font-size: 7pt;
-    color: #687386;
+    font-size: 7.5pt;
+    color: #4B5563;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
   }}
   .kpi-val {{
-    font-size: 12pt;
+    font-size: 12.5pt;
     font-weight: 800;
-    color: #0B6B68;
+    color: #08615E;
     margin-top: 2px;
   }}
   .note-box {{
     margin-top: 8px;
     padding: 5px 8px;
-    background: #F8FAF9;
-    border-left: 3px solid #0B6B68;
-    font-size: 7pt;
-    color: #55626D;
+    background: #F8FAFA;
+    border-left: 3px solid #08615E;
+    font-size: 7.5pt;
+    color: #4B5563;
     font-style: italic;
     line-height: 1.35;
   }}
   .badge {{
     display: inline-block;
-    padding: 1px 4px;
+    padding: 2px 5px;
     border-radius: 3px;
-    font-size: 6.5pt;
+    font-size: 7pt;
     font-weight: 700;
     background: #E8F2F8;
     color: #0F5F91;
@@ -1246,20 +1257,20 @@ async def generate_valuation_pdf(response: ValuationResponse) -> bytes:
         await page.set_content(html_content, wait_until="networkidle")
 
         pdf_bytes = await page.pdf(
-            format="Letter",
+            format="A4",
             landscape=True,
             print_background=True,
-            margin={"top": "0.35in", "bottom": "0.35in", "left": "0.35in", "right": "0.35in"},
+            margin={"top": "8mm", "bottom": "8mm", "left": "10mm", "right": "10mm"},
             display_header_footer=True,
             header_template="""
-            <div style="font-size: 7pt; font-family: sans-serif; width: 100%; padding: 0 0.4in; display: flex; justify-content: space-between; color: #718083;">
-              <span style="font-weight: 800; letter-spacing: 0.08em;">HIGHLY CONFIDENTIAL — VALUATION EXHIBIT REPORT</span>
-              <span>CONFIDENTIAL</span>
+            <div style="font-size: 7.5pt; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; color: #64748b; font-weight: 600;">
+              <span style="letter-spacing: 0.08em; text-transform: uppercase;">HIGHLY CONFIDENTIAL — VALUATION EXHIBIT REPORT</span>
+              <span>CONTINGENT CLAIMS ANALYSIS (OPM)</span>
             </div>
             """,
             footer_template="""
-            <div style="font-size: 7pt; font-family: sans-serif; width: 100%; padding: 0 0.4in; display: flex; justify-content: space-between; color: #718083;">
-              <span>Contingent Claims Analysis (OPM)</span>
+            <div style="font-size: 7.5pt; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; color: #64748b;">
+              <span>AICPA / ASC 718 / ASC 820 VALUATION WORKSPACE</span>
               <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
             </div>
             """
