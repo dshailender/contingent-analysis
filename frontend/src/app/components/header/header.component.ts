@@ -215,6 +215,15 @@ import { ValuationStateService } from '../../services/valuation-state.service';
       margin-bottom: 5px;
     }
 
+    .branding-line h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
     .firm-logo-wrap {
       display: flex;
       align-items: center;
@@ -238,10 +247,10 @@ import { ValuationStateService } from '../../services/valuation-state.service';
     }
 
     .subtitle {
-      color: #d1dfdd;
-      font-size: 12.5px;
-      margin-top: 3px;
-      line-height: 1.4;
+      color: #dce9e7;
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.45;
     }
 
     .subtitle strong {

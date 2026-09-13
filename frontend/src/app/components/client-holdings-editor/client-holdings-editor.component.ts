@@ -167,11 +167,16 @@ import { ValuationStateService } from '../../services/valuation-state.service';
       background: transparent;
       border: 0;
       color: #94a3b8;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      padding: 2px 6px;
+      width: 22px;
+      height: 22px;
+      line-height: 1;
       border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: color 0.12s, background 0.12s;
     }
 

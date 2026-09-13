@@ -64,24 +64,24 @@ import { SecurityInput } from '../../models/valuation.models';
 
         <!-- 15-Column Spreadsheet Grid -->
         <div class="spreadsheet-container" tabindex="0" role="region" aria-label="Capitalization table spreadsheet">
-          <table class="spreadsheet-table dense-editor-table">
+          <table class="security-input-table">
             <thead>
               <tr>
-                <th scope="col" style="width: 12%;">Security Class</th>
-                <th scope="col" style="width: 9%;">Subtype</th>
-                <th scope="col" style="width: 7%; text-align: right;">Shares</th>
-                <th scope="col" style="width: 7%; text-align: right;">Strike Price</th>
-                <th scope="col" style="width: 7%; text-align: right;">Issue Price</th>
-                <th scope="col" style="width: 7%; text-align: right;">Conv. Price</th>
-                <th scope="col" style="width: 5%; text-align: right;">Liq. Mult.</th>
-                <th scope="col" style="width: 6%;">Participation</th>
-                <th scope="col" style="width: 6%;">Part. Cap</th>
-                <th scope="col" style="width: 5%; text-align: right;">Seniority</th>
-                <th scope="col" style="width: 8%;">Issue Date</th>
-                <th scope="col" style="width: 6%; text-align: right;">Div. %</th>
-                <th scope="col" style="width: 7%;">Compounding</th>
-                <th scope="col" style="width: 6%; text-align: right;">Div. Paid</th>
-                <th scope="col" style="width: 4%; text-align: center;">Action</th>
+                <th scope="col">Security Class</th>
+                <th scope="col">Subtype</th>
+                <th scope="col" class="text-right">Shares</th>
+                <th scope="col" class="text-right">Strike Price</th>
+                <th scope="col" class="text-right">Issue Price</th>
+                <th scope="col" class="text-right">Conv. Price</th>
+                <th scope="col" class="text-right">Liq. Mult.</th>
+                <th scope="col">Participation</th>
+                <th scope="col">Part. Cap</th>
+                <th scope="col" class="text-right">Seniority</th>
+                <th scope="col">Issue Date</th>
+                <th scope="col" class="text-right">Div. %</th>
+                <th scope="col">Compounding</th>
+                <th scope="col" class="text-right">Div. Paid</th>
+                <th scope="col" style="text-align: center;">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -337,27 +337,20 @@ import { SecurityInput } from '../../models/valuation.models';
       margin-right: 3px;
     }
 
-    .dense-editor-table input,
-    .dense-editor-table select {
-      height: 25px;
-      padding: 2px 5px;
-      font-size: 11px;
-      border-radius: 4px;
-    }
-
-    .text-right {
-      text-align: right;
-    }
-
     .delete-btn {
       background: transparent;
       border: 0;
       color: #94a3b8;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      padding: 2px 6px;
+      width: 22px;
+      height: 22px;
+      line-height: 1;
       border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: color 0.12s, background 0.12s;
     }
 

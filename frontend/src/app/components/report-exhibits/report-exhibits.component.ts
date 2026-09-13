@@ -85,43 +85,25 @@ interface DistributionSegment {
         <!-- COVER SHEET -->
         <!-- ========================================================================= -->
         @if (selectedExhibit() === 'Cover') {
-          <div class="card accent-card cover-sheet-view">
-            @if (res.firm_logo_base64) {
-              <div class="cover-logo-wrap">
-                <img [src]="res.firm_logo_base64" alt="Firm Logo" class="cover-logo-img" />
+          <div id="reportCover" class="report-page cover-page">
+            <div class="cover-inner">
+              @if (res.firm_logo_base64) {
+                <img [src]="res.firm_logo_base64" alt="Firm Logo" class="cover-firm-logo" />
+              }
+              <div class="cover-analysis-label">CONTINGENT CLAIMS ANALYSIS</div>
+              <div class="cover-rule"></div>
+              <h1 id="coverCompanyName">{{ res.company_name }}</h1>
+              <div class="cover-client">
+                <span>PREPARED FOR</span>
+                <b>{{ res.client_name }}</b>
               </div>
-            } @else {
-              <div class="cover-eyebrow">CONTINGENT CLAIMS VALUATION REPORT</div>
-            }
-
-            <h1 class="cover-main-title">CONTINGENT CLAIMS VALUATION REPORT</h1>
-            <p class="cover-sub-title">Option Pricing Method (OPM) Backsolve &amp; Allocation Analysis prepared for {{ res.client_name }}</p>
-
-            <div class="cover-grid">
-              <div class="cover-cell">
-                <span class="cell-label">Subject Company</span>
-                <span class="cell-value">{{ res.company_name }}</span>
+              <div class="cover-valuation-date">
+                <span>VALUATION DATE</span>
+                <b>{{ res.valuation_date }}</b>
               </div>
-              <div class="cover-cell">
-                <span class="cell-label">Report Purpose</span>
-                <span class="cell-value">{{ res.report_purpose }}</span>
-              </div>
-              <div class="cover-cell">
-                <span class="cell-label">Report Status</span>
-                <span class="cell-value">{{ res.report_status }}</span>
-              </div>
-              <div class="cover-cell">
-                <span class="cell-label">Calibration Date</span>
-                <span class="cell-value tabular">{{ res.calibration_date }}</span>
-              </div>
-              <div class="cover-cell">
-                <span class="cell-label">Valuation Date</span>
-                <span class="cell-value tabular">{{ res.valuation_date }}</span>
-              </div>
-              <div class="cover-cell">
-                <span class="cell-label">Concluded Total Equity</span>
-                <span class="cell-value highlight tabular">{{ state.currencySymbol() }}{{ (res.concluded_equity_value * res.display_scale) | number:'1.2-2' }}</span>
-              </div>
+              @if (res.report_status) {
+                <div id="coverReportStatus" class="cover-report-status">{{ res.report_status }}</div>
+              }
             </div>
           </div>
         }
@@ -130,32 +112,43 @@ interface DistributionSegment {
         <!-- INDEX OF EXHIBITS -->
         <!-- ========================================================================= -->
         @if (selectedExhibit() === 'Index') {
-          <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Index of Valuation Exhibits &amp; Parameters</h2>
-              <span class="unit-badge">{{ res.company_name }} • As of {{ res.valuation_date }}</span>
+          <div id="reportIndex" class="report-page index-page">
+            <div class="index-topline"></div>
+            <div class="index-header-grid">
+              <div class="index-header-left">
+                <div class="index-client">{{ res.company_name }}</div>
+                <div class="index-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="index-asof">As of {{ res.valuation_date }}</div>
+                <div class="index-label">Index of Exhibits</div>
+              </div>
+              <div class="index-header-right">
+                <div class="index-word">Index</div>
+                @if (res.report_status) {
+                  <div id="indexReportStatus" class="index-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
+            <div class="index-blue-rule"></div>
 
-            <div class="spreadsheet-container" tabindex="0" role="region" aria-label="Index of exhibits table">
-              <table class="spreadsheet-table">
+            <div class="index-table-wrap">
+              <table class="index-table">
                 <thead>
                   <tr>
-                    <th scope="col" style="width: 15%;">Exhibit</th>
-                    <th scope="col" style="text-align: left; width: 60%;">Description</th>
-                    <th scope="col" style="width: 25%;">Scope / Effective Date</th>
+                    <th scope="col">Exhibit</th>
+                    <th scope="col" style="text-align: right;">Page</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td><strong>Exhibit 1.0</strong></td><td>Client Holdings Summary &amp; Concluded Portfolio Value</td><td>Valuation Date ({{ res.valuation_date }})</td></tr>
-                  <tr><td><strong>Exhibit 2.0</strong></td><td>Capitalization Structure &amp; Security Terms</td><td>Calibration Date ({{ res.calibration_date }})</td></tr>
-                  <tr><td><strong>Exhibit 3.0</strong></td><td>Breakpoint Schedule &amp; Claims Allocation Matrix</td><td>Calibration Date ({{ res.calibration_date }})</td></tr>
-                  <tr><td><strong>Exhibit 4.0</strong></td><td>OPM Backsolve Mechanics &amp; Tranche Option Pricing</td><td>Calibration Date ({{ res.calibration_date }})</td></tr>
-                  <tr><td><strong>Exhibit 5.0</strong></td><td>Risk-Free Rate Curve &amp; Interpolation Analysis</td><td>Calibration Date ({{ res.calibration_date }})</td></tr>
-                  <tr><td><strong>Exhibit 6.0</strong></td><td>Capitalization Structure &amp; Security Terms</td><td>Valuation Date ({{ res.valuation_date }})</td></tr>
-                  <tr><td><strong>Exhibit 7.0</strong></td><td>Breakpoint Schedule &amp; Claims Allocation Matrix</td><td>Valuation Date ({{ res.valuation_date }})</td></tr>
-                  <tr><td><strong>Exhibit 8.0</strong></td><td>OPM Value Allocation Matrix &amp; Concluded Fair Values</td><td>Valuation Date ({{ res.valuation_date }})</td></tr>
-                  <tr><td><strong>Exhibit 9.0</strong></td><td>Risk-Free Rate Curve &amp; Interpolation Analysis</td><td>Valuation Date ({{ res.valuation_date }})</td></tr>
-                  <tr><td><strong>Exhibit 10.0</strong></td><td>Comparative Liquidation Waterfall Schedule</td><td>Side-by-Side (Calibration vs. Valuation)</td></tr>
+                  <tr><td>Exhibit 1.0: Client Portfolio Holdings &amp; Concluded Values</td><td style="text-align: right;">3</td></tr>
+                  <tr><td>Exhibit 2.0: Capitalization Structure &amp; Security Terms (Calibration Date)</td><td style="text-align: right;">4</td></tr>
+                  <tr><td>Exhibit 3.0: Breakpoint Schedule &amp; Claims Matrix (Calibration Date)</td><td style="text-align: right;">5</td></tr>
+                  <tr><td>Exhibit 4.0: OPM Backsolve Tranches &amp; Solved Enterprise Value (Calibration Date)</td><td style="text-align: right;">6</td></tr>
+                  <tr><td>Exhibit 5.0: Risk-Free Rate Curve &amp; Tenor Interpolation (Calibration Date)</td><td style="text-align: right;">7</td></tr>
+                  <tr><td>Exhibit 6.0: Capitalization Structure &amp; Security Terms (Valuation Date)</td><td style="text-align: right;">8</td></tr>
+                  <tr><td>Exhibit 7.0: Breakpoint Schedule &amp; Claims Matrix (Valuation Date)</td><td style="text-align: right;">9</td></tr>
+                  <tr><td>Exhibit 8.0: OPM Tranche Allocation &amp; Concluded Per-Share Values (Valuation Date)</td><td style="text-align: right;">10</td></tr>
+                  <tr><td>Exhibit 9.0: Risk-Free Rate Curve &amp; Tenor Interpolation (Valuation Date)</td><td style="text-align: right;">11</td></tr>
+                  <tr><td>Exhibit 10.0: Comparative Liquidation Preference Waterfall &amp; Delta Analysis</td><td style="text-align: right;">12</td></tr>
                 </tbody>
               </table>
             </div>
@@ -167,9 +160,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '1.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 1.0: Client Portfolio Holdings &amp; Concluded Value</h2>
-              <span class="unit-badge">Amounts in {{ res.display_units }} ({{ res.report_currency }})</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 1.0: Client Portfolio Holdings &amp; Concluded Value</div>
+                <div class="prh-date">As of {{ res.valuation_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }})</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 1.0</div>
+                <div class="prh-page">Page 3 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <div class="spreadsheet-container" tabindex="0" role="region" aria-label="Holdings exhibit table">
@@ -230,9 +235,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '2.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 2.0: Capitalization Table &amp; Terms — Calibration Date</h2>
-              <span class="unit-badge">Effective Date: {{ res.calibration_date }}</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 2.0: Capitalization Table &amp; Terms — Calibration Date</div>
+                <div class="prh-date">As of {{ res.calibration_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }})</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 2.0</div>
+                <div class="prh-page">Page 4 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <div class="spreadsheet-container" tabindex="0" role="region" aria-label="Calibration cap table">
@@ -277,9 +294,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '3.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 3.0: Breakpoint Schedule &amp; Claims Matrix — Calibration Date</h2>
-              <span class="unit-badge">As of {{ res.calibration_date }}</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 3.0: Breakpoint Schedule &amp; Claims Matrix — Calibration Date</div>
+                <div class="prh-date">As of {{ res.calibration_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }})</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 3.0</div>
+                <div class="prh-page">Page 5 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <h3 class="sub-table-header">Breakpoint Equity Thresholds</h3>
@@ -338,6 +367,21 @@ interface DistributionSegment {
                 </tbody>
               </table>
             </div>
+
+            <div class="combined-footnotes">
+              <div>
+                <h4>Breakpoint Mechanics &amp; Trigger Events</h4>
+                <div>
+                  Breakpoints represent equity values where preferred liquidation preferences are satisfied, participation caps are met, or preferred converts to common stock.
+                </div>
+              </div>
+              <div>
+                <h4>Contractual Entitlement Reconciliation</h4>
+                <div>
+                  In each tranche, marginal proceeds are allocated in strict accordance with contractual preferences, reconciling to <b>100.00%</b> across all classes.
+                </div>
+              </div>
+            </div>
           </div>
         }
 
@@ -346,9 +390,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '4.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 4.0: OPM Backsolve Tranches &amp; Solved Equity — Calibration Date</h2>
-              <span class="unit-badge">Term: {{ res.term_calibration | number:'1.2-2' }}y • Vol: {{ res.calibration_opm.volatility * 100 | number:'1.1-1' }}% • Rf: {{ res.rf_calibration_effective | number:'1.2-2' }}%</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 4.0: OPM Backsolve Tranches &amp; Solved Equity — Calibration Date</div>
+                <div class="prh-date">As of {{ res.calibration_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }}) • Term: {{ res.term_calibration | number:'1.2-2' }}y • Vol: {{ res.calibration_opm.volatility * 100 | number:'1.1-1' }}% • Rf: {{ res.rf_calibration_effective | number:'1.2-2' }}%</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 4.0</div>
+                <div class="prh-page">Page 6 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <h3 class="sub-table-header">Black-Scholes Call Option Tranche Pricing</h3>
@@ -417,6 +473,21 @@ interface DistributionSegment {
                 </tbody>
               </table>
             </div>
+
+            <div class="combined-footnotes">
+              <div>
+                <h4>Black-Scholes Tranche Pricing</h4>
+                <div>
+                  Tranche values represent call option spreads C(Xk-1) - C(Xk) priced using the Black-Scholes formula with continuous risk-free rate and volatility.
+                </div>
+              </div>
+              <div>
+                <h4>Backsolve Calibration Target</h4>
+                <div>
+                  Total enterprise equity value is solved so that the calibrated round price equals <b>{{ state.currencySymbol() }}{{ (state.request()?.transaction_price || 0) | number:'1.2-2' }}</b> per share.
+                </div>
+              </div>
+            </div>
           </div>
         }
 
@@ -425,9 +496,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '5.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 5.0: Risk-Free Rate Curve &amp; Interpolation — Calibration Date</h2>
-              <span class="unit-badge">Term to Exit: {{ res.term_calibration | number:'1.2-2' }} Years</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 5.0: Risk-Free Rate Curve &amp; Interpolation — Calibration Date</div>
+                <div class="prh-date">As of {{ res.calibration_date }}</div>
+                <div class="prh-units">Term to Exit: {{ res.term_calibration | number:'1.2-2' }} Years</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 5.0</div>
+                <div class="prh-page">Page 7 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             @if (res.calibration_rf_analysis; as rf) {
@@ -470,9 +553,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '6.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 6.0: Capitalization Table &amp; Terms — Valuation Date</h2>
-              <span class="unit-badge">Effective Date: {{ res.valuation_date }}</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 6.0: Capitalization Table &amp; Terms — Valuation Date</div>
+                <div class="prh-date">As of {{ res.valuation_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }})</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 6.0</div>
+                <div class="prh-page">Page 8 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <div class="spreadsheet-container" tabindex="0" role="region" aria-label="Valuation cap table">
@@ -517,9 +612,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '7.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 7.0: Breakpoint Schedule &amp; Claims Matrix — Valuation Date</h2>
-              <span class="unit-badge">As of {{ res.valuation_date }}</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 7.0: Breakpoint Schedule &amp; Claims Matrix — Valuation Date</div>
+                <div class="prh-date">As of {{ res.valuation_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }})</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 7.0</div>
+                <div class="prh-page">Page 9 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <h3 class="sub-table-header">Breakpoint Equity Thresholds</h3>
@@ -578,6 +685,21 @@ interface DistributionSegment {
                 </tbody>
               </table>
             </div>
+
+            <div class="combined-footnotes">
+              <div>
+                <h4>Breakpoint Liquidation Thresholds</h4>
+                <div>
+                  Represents sequential thresholds of enterprise equity value where preferred liquidation preferences and dividend accruals are fully satisfied.
+                </div>
+              </div>
+              <div>
+                <h4>Incremental Claims Sharing</h4>
+                <div>
+                  Marginal proceeds within each tier are divided among entitled classes, reconciling strictly to <b>100.00%</b> across all classes.
+                </div>
+              </div>
+            </div>
           </div>
         }
 
@@ -586,9 +708,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '8.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 8.0: OPM Value Allocation Matrix — Valuation Date</h2>
-              <span class="unit-badge">Concluded Equity: {{ state.currencySymbol() }}{{ (res.concluded_equity_value * res.display_scale) | number:'1.2-2' }}</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 8.0: OPM Value Allocation Matrix — Valuation Date</div>
+                <div class="prh-date">As of {{ res.valuation_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }}) • Concluded Equity: {{ state.currencySymbol() }}{{ (res.concluded_equity_value * res.display_scale) | number:'1.2-2' }}</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 8.0</div>
+                <div class="prh-page">Page 10 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <h3 class="sub-table-header">Black-Scholes Call Option Tranche Pricing</h3>
@@ -677,6 +811,21 @@ interface DistributionSegment {
                 </tbody>
               </table>
             </div>
+
+            <div class="combined-footnotes">
+              <div>
+                <h4>OPM Tranche Value Allocation</h4>
+                <div>
+                  Each security's concluded fair value is the sum of its contractual shares of call option spreads across all breakpoint tranches.
+                </div>
+              </div>
+              <div>
+                <h4>Statutory Fair Value Reconciliation</h4>
+                <div>
+                  Concluded equity of <b>{{ state.currencySymbol() }}{{ (res.concluded_equity_value * res.display_scale) | number:'1.2-2' }}</b> is reconciled to <b>100.00%</b> across all common, preferred, and derivative classes.
+                </div>
+              </div>
+            </div>
           </div>
         }
 
@@ -685,9 +834,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '9.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 9.0: Risk-Free Rate Curve &amp; Interpolation — Valuation Date</h2>
-              <span class="unit-badge">Term to Liquidity: {{ res.term_valuation | number:'1.2-2' }} Years</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 9.0: Risk-Free Rate Curve &amp; Interpolation — Valuation Date</div>
+                <div class="prh-date">As of {{ res.valuation_date }}</div>
+                <div class="prh-units">Term to Liquidity: {{ res.term_valuation | number:'1.2-2' }} Years</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 9.0</div>
+                <div class="prh-page">Page 11 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             @if (res.valuation_rf_analysis; as rf) {
@@ -730,9 +891,21 @@ interface DistributionSegment {
         <!-- ========================================================================= -->
         @if (selectedExhibit() === '10.0') {
           <div class="card accent-card">
-            <div class="exhibit-title-bar">
-              <h2>Exhibit 10.0: Comparative Liquidation Waterfall Schedule</h2>
-              <span class="unit-badge">Scenario Exit Equity: {{ state.currencySymbol() }}{{ ((res.waterfall.applied_equity || res.waterfall.equity_value || 0) * res.display_scale) | number:'1.2-2' }}</span>
+            <div class="page-report-header">
+              <div class="prh-left">
+                <div class="prh-client">{{ res.company_name }}</div>
+                <div class="prh-purpose">{{ res.report_purpose || 'Option Pricing Method (OPM) Analysis' }}</div>
+                <div class="prh-exhibit">Exhibit 10.0: Comparative Liquidation Waterfall Schedule</div>
+                <div class="prh-date">As of {{ res.valuation_date }}</div>
+                <div class="prh-units">Amounts in {{ res.display_units }} ({{ res.report_currency }}) • Applied Exit Equity: {{ state.currencySymbol() }}{{ ((res.waterfall.applied_equity || res.waterfall.equity_value || 0) * res.display_scale) | number:'1.2-2' }}</div>
+              </div>
+              <div class="prh-right">
+                <div class="prh-exhibit-no">Exhibit 10.0</div>
+                <div class="prh-page">Page 12 of 12</div>
+                @if (res.report_status) {
+                  <div class="prh-status">{{ res.report_status }}</div>
+                }
+              </div>
             </div>
 
             <div class="spreadsheet-container" tabindex="0" role="region" aria-label="Comparative liquidation waterfall schedule">
@@ -794,6 +967,21 @@ interface DistributionSegment {
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <div class="combined-footnotes">
+              <div>
+                <h4>Comparative Liquidation Structure</h4>
+                <div>
+                  Evaluates contractual distribution outcomes across security classes at hypothetical liquidity events, comparing Calibration vs Valuation cap table terms.
+                </div>
+              </div>
+              <div>
+                <h4>Preference Priority &amp; Dilution Analysis</h4>
+                <div>
+                  Variance in distributions isolates the impact of subsequent financing round preference layering and equity dilution on early-stage stakeholders.
+                </div>
+              </div>
             </div>
           </div>
         }
@@ -914,82 +1102,6 @@ interface DistributionSegment {
 
     .text-right {
       text-align: right;
-    }
-
-    /* Cover Sheet View */
-    .cover-sheet-view {
-      padding: 34px 38px;
-      background: linear-gradient(135deg, #131d23 0%, #20363d 58%, #08615e 100%);
-      color: #ffffff;
-      border-radius: 12px;
-    }
-
-    .cover-logo-wrap {
-      margin-bottom: 18px;
-    }
-
-    .cover-logo-img {
-      max-height: 48px;
-      max-width: 200px;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-
-    .cover-eyebrow {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: #a2d4cd;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    .cover-main-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #ffffff;
-      margin: 0 0 8px;
-    }
-
-    .cover-sub-title {
-      font-size: 14px;
-      color: #e5f3f0;
-      margin: 0 0 26px;
-    }
-
-    .cover-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-    }
-
-    .cover-cell {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .cell-label {
-      font-size: 10.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #a2d4cd;
-    }
-
-    .cell-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .cell-value.highlight {
-      color: #6ee7b7;
-      font-size: 17px;
     }
   `]
 })
