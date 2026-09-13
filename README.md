@@ -102,20 +102,30 @@ npm test -- --watch=false
 npm run build
 ```
 
-### 3. Running the Unified Server
-When the frontend is built, Spring Boot automatically serves the Angular application at the root (`/`) while exposing the REST API at (`/api`):
-```powershell
-cd backend
-mvn spring-boot:run
-```
-Open your browser to: **`http://localhost:8000`**
+### 3. Unified Local Development (Backend + Frontend Hot Reload)
 
-To run Angular in live development mode with hot reload:
-```powershell
-cd frontend
-npm start
-# App running at http://localhost:4200 (proxies /api to http://localhost:8000)
+To run the full stack locally with a single unified command—building the frontend first, then starting the Spring Boot backend (`mvn spring-boot:run`) concurrently with the Angular dev server in hot-reload mode:
+
+#### Unified Command (Works in both PowerShell and Bash)
+From the repository root:
+```bash
+npm run dev
 ```
+*(or `npm start`)*
+
+Alternatively, as a direct one-liner without using npm scripts:
+```bash
+npm --prefix frontend run build; npx --yes concurrently -k -n backend,frontend -c blue.bold,green.bold "mvn -f backend/pom.xml spring-boot:run" "npm --prefix frontend start"
+```
+
+Dedicated scripts are also available:
+- **PowerShell**: `.\run-local.ps1`
+- **Bash**: `./run-local.sh`
+
+#### Access Points
+- **Hot-Reload Development UI**: [`http://localhost:4200`](http://localhost:4200) (auto-proxies `/api` calls to the Spring Boot backend)
+- **Spring Boot Backend API**: [`http://localhost:8000/api`](http://localhost:8000/api)
+- **Spring Boot Embedded UI**: [`http://localhost:8000`](http://localhost:8000) (serves compiled Angular production dist)
 
 ---
 

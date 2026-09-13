@@ -27,7 +27,17 @@ npm test -- --watch=false
 npm run build
 ```
 
-For the integrated app, build the frontend first, then run:
+To run the full stack locally with hot reload (builds frontend, then runs Spring Boot and Angular dev server concurrently):
+
+```powershell
+# From repository root (works in both PowerShell and Bash):
+npm run dev
+# Or direct:
+# .\run-local.ps1  (PowerShell)
+# ./run-local.sh   (Bash)
+```
+
+To run only the standalone Spring Boot server hosting the built frontend:
 
 ```powershell
 cd backend

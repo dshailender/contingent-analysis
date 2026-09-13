@@ -1,0 +1,14 @@
+{
+  "name": "contingent-claims-analysis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contingent Claims Analysis (OPM) Valuation Platform",
+  "scripts": {
+    "build:frontend": "npm --prefix frontend run build",
+    "backend": "mvn -f backend/pom.xml spring-boot:run",
+    "frontend": "npm --prefix frontend start",
+    "dev": "npm run build:frontend && npx --yes concurrently -k -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"npm run backend\" \"npm run frontend\"",
+    "start": "npm run dev"
+  }
+}
+
