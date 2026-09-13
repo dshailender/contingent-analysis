@@ -1,0 +1,54 @@
+<div class="wrap">
+  <!-- Executive Header & Navigation -->
+  <app-header></app-header>
+
+  <!-- Global Validation Alert Bar -->
+  @if (state.validationIssues().length > 0) {
+    <div class="alert-box">
+      <strong>⚠️ Model Validation Issues ({{ state.validationIssues().length }}):</strong>
+      <ul>
+        @for (issue of state.validationIssues(); track issue) {
+          <li>{{ issue }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (state.error()) {
+    <div class="alert-box">
+      <strong>⚠️ Error:</strong> {{ state.error() }}
+    </div>
+  }
+
+  <!-- Active Tab Workspace -->
+  <main class="main-content">
+    @switch (state.activeTab()) {
+      @case ('inputs') {
+        <app-engagement-settings></app-engagement-settings>
+      }
+      @case ('cap_tables') {
+        <app-cap-table-editor></app-cap-table-editor>
+      }
+      @case ('opm') {
+        <app-opm-controls></app-opm-controls>
+      }
+      @case ('holdings') {
+        <app-client-holdings-editor></app-client-holdings-editor>
+      }
+      @case ('capital_iq') {
+        <app-capital-iq-modal></app-capital-iq-modal>
+      }
+      @case ('exhibits') {
+        <app-report-exhibits></app-report-exhibits>
+      }
+    }
+  </main>
+</div>
+
+<!-- Loading Overlay -->
+@if (state.loading()) {
+  <div class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Calculating valuation model & tranches...</p>
+  </div>
+}

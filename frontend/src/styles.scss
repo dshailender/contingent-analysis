@@ -1,0 +1,305 @@
+/* Executive visual system matching Contingent Claims Analysis reference mock */
+
+:root {
+  --ink: #18212b;
+  --slate: #344653;
+  --teal: #0b6b68;
+  --teal2: #12827d;
+  --mint: #e9f5f2;
+  --sand: #f5efe4;
+  --gold: #b68a45;
+  --line: #dce4e5;
+  --paper: #ffffff;
+  --bg: #edf2f1;
+  --danger: #c43b3b;
+  --danger-bg: #fff4f4;
+  --na-bg: #f0f2f5;
+  --na-text: #8a96a3;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 8% 3%, rgba(18, 130, 125, 0.13), transparent 24rem),
+    radial-gradient(circle at 92% 8%, rgba(182, 138, 69, 0.12), transparent 25rem),
+    linear-gradient(180deg, #f7faf9 0, #edf2f1 48%, #f7f8f6 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 28px 60px;
+}
+
+/* Typography */
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--slate); }
+h3 { font-size: 14px; font-weight: 600; color: var(--teal); margin-bottom: 6px; }
+
+/* Cards */
+.card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(52, 70, 83, 0.14);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(31, 51, 57, 0.06);
+  position: relative;
+}
+
+.card.accent-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 4px;
+  background: linear-gradient(var(--teal), var(--gold));
+  border-radius: 0 4px 4px 0;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 7px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(11, 107, 104, 0.2);
+}
+
+.btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgba(11, 107, 104, 0.3);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.btn.secondary {
+  background: #eef3f2;
+  color: #26383d;
+  box-shadow: none;
+  border: 1px solid #d8e2e0;
+}
+
+.btn.secondary:hover {
+  background: #e3ecea;
+}
+
+.btn.excel {
+  background: #1d6f42;
+  color: #fff;
+}
+
+.btn.pdf {
+  background: #9d332c;
+  color: #fff;
+}
+
+/* Form inputs */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 9px;
+  border: 1px solid #cbd7d5;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(11, 107, 104, 0.15);
+}
+
+input.invalid, select.invalid {
+  border-color: var(--danger) !important;
+  background: var(--danger-bg) !important;
+}
+
+input:disabled, select:disabled {
+  background: var(--na-bg) !important;
+  color: var(--na-text) !important;
+  cursor: not-allowed;
+}
+
+/* Spreadsheet table */
+.spreadsheet-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #d8e2df;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.spreadsheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.spreadsheet-table th {
+  background: #e8f0ee;
+  color: #26383d;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px solid #cfdad8;
+  border-right: 1px solid #e2ecea;
+  text-align: left;
+  white-space: normal;
+}
+
+.spreadsheet-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #edf2f1;
+  border-right: 1px solid #edf2f1;
+  vertical-align: middle;
+}
+
+.spreadsheet-table tr:hover {
+  background: #f8fbfa;
+}
+
+.spreadsheet-table tr.total-row {
+  font-weight: 700;
+  background: #edf6f4;
+  border-top: 2px solid var(--teal);
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge.draft {
+  background: #fdf3e7;
+  color: #b66d13;
+  border: 1px solid #f6d8ae;
+}
+
+.badge.confidential {
+  background: #fdeeee;
+  color: #b22d2d;
+  border: 1px solid #f8c9c9;
+}
+
+.badge.tier {
+  background: #e6f3f0;
+  color: var(--teal);
+  font-size: 9px;
+  border-radius: 4px;
+}
+
+/* KPI grids */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+
+.kpi-card {
+  background: linear-gradient(180deg, #f8fbfa, #eef5f3);
+  border: 1px solid #dce7e4;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.kpi-card .kpi-label {
+  font-size: 11px;
+  color: #687a7e;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kpi-card .kpi-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #173539;
+  margin-top: 4px;
+}
+
+/* Alerts */
+.alert-box {
+  background: var(--danger-bg);
+  border: 1px solid #f5c2c2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.alert-box ul {
+  margin-left: 18px;
+  margin-top: 4px;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(23, 36, 43, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  color: #fff;
+  font-weight: 600;
+  backdrop-filter: blur(2px);
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
