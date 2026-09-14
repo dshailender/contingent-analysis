@@ -1,15 +1,22 @@
 package com.example.contingentanalysis.domain.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 public class HoldingInput {
     @NotBlank(message = "Fund name is required")
+    @Size(max = 255, message = "Fund name exceeds 255 characters")
     private String fund;
 
     @NotBlank(message = "Security name is required")
+    @Size(max = 255, message = "Security name exceeds 255 characters")
     private String security;
 
+    @PositiveOrZero(message = "Units must be non-negative")
     private double units;
+
+    @PositiveOrZero(message = "Cost must be non-negative")
     private double cost = 0.0;
 
     public HoldingInput() {

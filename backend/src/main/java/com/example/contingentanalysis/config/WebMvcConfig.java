@@ -29,18 +29,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
         return new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(objectMapper);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:4200,http://127.0.0.1:4200,http://localhost:8000,http://127.0.0.1:8000}")
+    private String allowedOriginsConfig;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String[] origins = java.util.Arrays.stream(allowedOriginsConfig.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty() && !s.equals("*"))
+                .toArray(String[]::new);
+
         registry.addMapping("/**")
-                .allowedOrigins(
-                        "http://localhost:4200",
-                        "http://127.0.0.1:4200",
-                        "http://localhost:8000",
-                        "http://127.0.0.1:8000",
-                        "*"
-                )
-                .allowedMethods("*")
+                .allowedOrigins(origins)
+                .allowedMethods("GET", "POST", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("X-Request-Id", "Content-Disposition")
                 .allowCredentials(false);
     }
 

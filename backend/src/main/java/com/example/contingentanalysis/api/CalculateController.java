@@ -1,15 +1,14 @@
 package com.example.contingentanalysis.api;
 
-import com.example.contingentanalysis.domain.date.DateMath;
 import com.example.contingentanalysis.domain.defaultscenario.DefaultScenarioService;
 import com.example.contingentanalysis.domain.model.ValidationResult;
 import com.example.contingentanalysis.domain.model.ValuationRequest;
 import com.example.contingentanalysis.domain.model.ValuationResponse;
 import com.example.contingentanalysis.domain.pipeline.ValuationPipelineService;
 import com.example.contingentanalysis.domain.validation.ValuationValidationService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,12 +29,12 @@ public class CalculateController {
     }
 
     @PostMapping("/calculate")
-    public ValuationResponse calculateModel(@RequestBody ValuationRequest request) {
+    public ValuationResponse calculateModel(@Valid @RequestBody ValuationRequest request) {
         return pipelineService.calculateValuation(request);
     }
 
     @PostMapping("/validate")
-    public ValidationResult validateModel(@RequestBody ValuationRequest request) {
+    public ValidationResult validateModel(@Valid @RequestBody ValuationRequest request) {
         List<String> issues = validationService.validateValuationRequest(request);
         return new ValidationResult(issues.isEmpty(), issues);
     }
@@ -47,14 +46,7 @@ public class CalculateController {
 
     @GetMapping("/basis-conventions")
     public List<Map<String, Object>> getBasisConventions() {
-        List<Map<String, Object>> conventions = new ArrayList<>();
-        for (Map.Entry<Integer, String> entry : DateMath.BASIS_NAMES.entrySet()) {
-            conventions.add(Map.of(
-                    "id", entry.getKey(),
-                    "name", entry.getValue()
-            ));
-        }
-        return conventions;
+        return pipelineService.getBasisConventions();
     }
 }
 

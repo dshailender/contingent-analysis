@@ -1,19 +1,49 @@
 package com.example.contingentanalysis.domain.exports;
 
 import com.example.contingentanalysis.domain.model.*;
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.Margin;
 import com.microsoft.playwright.options.WaitUntilState;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class PdfExportService {
+
+    private static final Logger log = LoggerFactory.getLogger(PdfExportService.class);
+    private final MeterRegistry meterRegistry;
+
+    public PdfExportService() {
+        this(null);
+    }
+
+    @Autowired
+    public PdfExportService(@Autowired(required = false) MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
+    private String sanitizeLogoBase64(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String trimmed = raw.trim();
+        if (trimmed.contains("<") || trimmed.contains(">") || trimmed.toLowerCase(Locale.ROOT).contains("javascript:")) {
+            log.warn("Rejected potentially unsafe logo base64 payload");
+            return null;
+        }
+        if (trimmed.startsWith("data:image/") && trimmed.contains(";base64,")) {
+            return trimmed;
+        }
+        if (trimmed.matches("^[A-Za-z0-9+/=]+$")) {
+            return "data:image/png;base64," + trimmed;
+        }
+        return null;
+    }
 
     private String mFmt(Double v, String sym) {
         if (v == null) return "—";
@@ -36,9 +66,10 @@ public class PdfExportService {
         String secSym = "USD".equalsIgnoreCase(res.getSecondaryCurrency()) ? "$" :
                 ("EUR".equalsIgnoreCase(res.getSecondaryCurrency()) ? "€" : "£");
 
+        String safeLogo = sanitizeLogoBase64(res.getFirmLogoBase64());
         String logoHtml;
-        if (res.getFirmLogoBase64() != null && !res.getFirmLogoBase64().trim().isEmpty()) {
-            logoHtml = String.format("<div style=\"margin-bottom: 20px;\"><img src=\"%s\" style=\"max-height: 48px; max-width: 220px; object-fit: contain; filter: brightness(0) invert(1);\" alt=\"Firm Logo\"></div>", res.getFirmLogoBase64());
+        if (safeLogo != null) {
+            logoHtml = String.format("<div style=\"margin-bottom: 20px;\"><img src=\"%s\" style=\"max-height: 48px; max-width: 220px; object-fit: contain; filter: brightness(0) invert(1);\" alt=\"Firm Logo\"></div>", safeLogo);
         } else {
             logoHtml = "<div style=\"margin-bottom: 16px; font-size: 11pt; font-weight: 700; letter-spacing: 0.15em; color: #A9D6CF; text-transform: uppercase;\">CONTINGENT CLAIMS VALUATION ENGINE</div>";
         }
@@ -1004,35 +1035,63 @@ public class PdfExportService {
     }
 
     public byte[] generateValuationPdf(ValuationResponse response) {
+        long start = System.currentTimeMillis();
+        log.info("Generating watermarked PDF report for company='{}'",
+                response != null ? response.getCompanyName() : "unknown");
+
         String htmlContent = renderPdfHtml(response);
 
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-            Page page = browser.newPage();
+            try (BrowserContext context = browser.newContext()) {
+                context.route("**/*", route -> {
+                    String url = route.request().url();
+                    if (url.startsWith("data:") || url.startsWith("about:") || url.startsWith("blob:")) {
+                        route.resume();
+                    } else {
+                        route.abort();
+                    }
+                });
 
-            page.setContent(htmlContent, new Page.SetContentOptions().setWaitUntil(WaitUntilState.NETWORKIDLE));
+                Page page = context.newPage();
+                page.setContent(htmlContent, new Page.SetContentOptions().setWaitUntil(WaitUntilState.NETWORKIDLE));
 
-            byte[] pdfBytes = page.pdf(new Page.PdfOptions()
-                    .setFormat("A4")
-                    .setLandscape(true)
-                    .setPrintBackground(true)
-                    .setMargin(new Margin().setTop("8mm").setBottom("8mm").setLeft("10mm").setRight("10mm"))
-                    .setDisplayHeaderFooter(true)
-                    .setHeaderTemplate("""
-                    <div style="font-size: 7.5pt; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; color: #64748b; font-weight: 600;">
-                      <span style="letter-spacing: 0.08em; text-transform: uppercase;">HIGHLY CONFIDENTIAL — VALUATION EXHIBIT REPORT</span>
-                      <span>CONTINGENT CLAIMS ANALYSIS (OPM)</span>
-                    </div>
-                    """)
-                    .setFooterTemplate("""
-                    <div style="font-size: 7.5pt; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; color: #64748b;">
-                      <span>AICPA / ASC 718 / ASC 820 VALUATION WORKSPACE</span>
-                      <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
-                    </div>
-                    """));
+                byte[] pdfBytes = page.pdf(new Page.PdfOptions()
+                        .setFormat("A4")
+                        .setLandscape(true)
+                        .setPrintBackground(true)
+                        .setMargin(new Margin().setTop("8mm").setBottom("8mm").setLeft("10mm").setRight("10mm"))
+                        .setDisplayHeaderFooter(true)
+                        .setHeaderTemplate("""
+                        <div style="font-size: 7.5pt; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; color: #64748b; font-weight: 600;">
+                          <span style="letter-spacing: 0.08em; text-transform: uppercase;">HIGHLY CONFIDENTIAL — VALUATION EXHIBIT REPORT</span>
+                          <span>CONTINGENT CLAIMS ANALYSIS (OPM)</span>
+                        </div>
+                        """)
+                        .setFooterTemplate("""
+                        <div style="font-size: 7.5pt; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; color: #64748b;">
+                          <span>AICPA / ASC 718 / ASC 820 VALUATION WORKSPACE</span>
+                          <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
+                        </div>
+                        """));
 
-            browser.close();
-            return pdfBytes;
+                long duration = System.currentTimeMillis() - start;
+                log.info("Generated PDF report for company='{}' in {} ms (size: {} bytes)",
+                        response != null ? response.getCompanyName() : "unknown", duration, pdfBytes.length);
+                if (meterRegistry != null) {
+                    meterRegistry.timer("export.pdf.timer").record(duration, TimeUnit.MILLISECONDS);
+                    meterRegistry.counter("export.pdf.count").increment();
+                }
+                return pdfBytes;
+            } finally {
+                browser.close();
+            }
+        } catch (Exception e) {
+            if (meterRegistry != null) {
+                meterRegistry.counter("export.pdf.failures").increment();
+            }
+            log.error("Failed to generate PDF report: {}", e.getMessage(), e);
+            throw new RuntimeException("PDF generation failed: " + e.getMessage(), e);
         }
     }
 }

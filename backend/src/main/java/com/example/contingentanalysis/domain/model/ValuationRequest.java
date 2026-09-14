@@ -1,46 +1,77 @@
 package com.example.contingentanalysis.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ValuationRequest {
+    @NotBlank(message = "Company name cannot be blank")
+    @Size(max = 255, message = "Company name exceeds 255 characters")
     @JsonProperty("company_name")
     private String companyName = "TADO";
 
+    @NotBlank(message = "Client name cannot be blank")
+    @Size(max = 255, message = "Client name exceeds 255 characters")
     @JsonProperty("client_name")
     private String clientName = "S2G Investments";
 
+    @Size(max = 255, message = "Report status exceeds 255 characters")
     @JsonProperty("report_status")
     private String reportStatus = "DRAFT - For Discussion Purposes Only";
 
+    @Size(max = 255, message = "Report purpose exceeds 255 characters")
     @JsonProperty("report_purpose")
     private String reportPurpose = "Valuation Analysis";
 
+    @Size(max = 255, message = "Report purpose manual exceeds 255 characters")
     @JsonProperty("report_purpose_manual")
     private String reportPurposeManual = "";
 
+    @NotBlank(message = "Calibration date cannot be blank")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Calibration date must be in YYYY-MM-DD format")
     @JsonProperty("calibration_date")
     private String calibrationDate = "2025-02-26";
 
+    @NotBlank(message = "Valuation date cannot be blank")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Valuation date must be in YYYY-MM-DD format")
     @JsonProperty("valuation_date")
     private String valuationDate = "2026-06-30";
 
+    @NotBlank(message = "Exit date cannot be blank")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Exit date must be in YYYY-MM-DD format")
     @JsonProperty("exit_date")
     private String exitDate = "2027-06-30";
 
+    @Min(value = 0, message = "Day count basis must be between 0 and 4")
+    @Max(value = 4, message = "Day count basis must be between 0 and 4")
     @JsonProperty("day_count_basis")
     private int dayCountBasis = 1;
 
+    @NotBlank(message = "Report currency cannot be blank")
+    @Size(max = 255, message = "Report currency exceeds 255 characters")
     @JsonProperty("report_currency")
     private String reportCurrency = "EUR";
 
+    @Pattern(regexp = "^(?i)(actual|thousands|millions)$", message = "Display units must be actual, thousands, or millions")
     @JsonProperty("display_units")
     private String displayUnits = "actual";
 
+    @NotNull(message = "Calibration securities cannot be null")
+    @Size(max = 200, message = "Calibration securities exceeds maximum allowed items")
+    @Valid
     @JsonProperty("calibration_securities")
     private List<SecurityInput> calibrationSecurities = new ArrayList<>();
 
+    @NotNull(message = "Valuation securities cannot be null")
+    @Size(max = 200, message = "Valuation securities exceeds maximum allowed items")
+    @Valid
     @JsonProperty("valuation_securities")
     private List<SecurityInput> valuationSecurities = new ArrayList<>();
 
@@ -74,20 +105,26 @@ public class ValuationRequest {
     @JsonProperty("company_adjustment")
     private double companyAdjustment = 0.0;
 
+    @Pattern(regexp = "^(?i)(concluded|manual)$", message = "Waterfall equity source must be concluded or manual")
     @JsonProperty("waterfall_equity_source")
     private String waterfallEquitySource = "concluded";
 
     @JsonProperty("manual_waterfall_equity")
     private double manualWaterfallEquity = 229900000.0;
 
+    @NotNull(message = "Holdings cannot be null")
+    @Size(max = 500, message = "Holdings exceeds maximum allowed items")
+    @Valid
     private List<HoldingInput> holdings = new ArrayList<>();
 
+    @Size(max = 5000000, message = "Firm logo base64 exceeds maximum allowed size")
     @JsonProperty("firm_logo_base64")
     private String firmLogoBase64;
 
     @JsonProperty("show_secondary_currency")
     private boolean showSecondaryCurrency = false;
 
+    @Size(max = 10, message = "Secondary currency exceeds 10 characters")
     @JsonProperty("secondary_currency")
     private String secondaryCurrency = "USD";
 

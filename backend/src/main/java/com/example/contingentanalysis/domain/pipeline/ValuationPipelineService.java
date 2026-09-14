@@ -11,12 +11,21 @@ import com.example.contingentanalysis.domain.opm.OpmService;
 import com.example.contingentanalysis.domain.riskfree.RiskFreeRateService;
 import com.example.contingentanalysis.domain.validation.ValuationValidationService;
 import com.example.contingentanalysis.domain.waterfall.WaterfallService;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ValuationPipelineService {
+
+    private static final Logger log = LoggerFactory.getLogger(ValuationPipelineService.class);
 
     private final ValuationValidationService validationService;
     private final CapitalizationService capitalizationService;
@@ -26,6 +35,7 @@ public class ValuationPipelineService {
     private final WaterfallService waterfallService;
     private final HoldingsService holdingsService;
     private final RiskFreeRateService riskFreeRateService;
+    private final MeterRegistry meterRegistry;
 
     public ValuationPipelineService(ValuationValidationService validationService,
                                     CapitalizationService capitalizationService,
@@ -35,6 +45,20 @@ public class ValuationPipelineService {
                                     WaterfallService waterfallService,
                                     HoldingsService holdingsService,
                                     RiskFreeRateService riskFreeRateService) {
+        this(validationService, capitalizationService, breakpointService, claimsService,
+                opmService, waterfallService, holdingsService, riskFreeRateService, null);
+    }
+
+    @Autowired
+    public ValuationPipelineService(ValuationValidationService validationService,
+                                    CapitalizationService capitalizationService,
+                                    BreakpointService breakpointService,
+                                    ClaimsService claimsService,
+                                    OpmService opmService,
+                                    WaterfallService waterfallService,
+                                    HoldingsService holdingsService,
+                                    RiskFreeRateService riskFreeRateService,
+                                    @Autowired(required = false) MeterRegistry meterRegistry) {
         this.validationService = validationService;
         this.capitalizationService = capitalizationService;
         this.breakpointService = breakpointService;
@@ -43,11 +67,31 @@ public class ValuationPipelineService {
         this.waterfallService = waterfallService;
         this.holdingsService = holdingsService;
         this.riskFreeRateService = riskFreeRateService;
+        this.meterRegistry = meterRegistry;
+    }
+
+    public List<Map<String, Object>> getBasisConventions() {
+        List<Map<String, Object>> conventions = new ArrayList<>();
+        for (Map.Entry<Integer, String> entry : DateMath.BASIS_NAMES.entrySet()) {
+            conventions.add(Map.of(
+                    "id", entry.getKey(),
+                    "name", entry.getValue()
+            ));
+        }
+        return conventions;
     }
 
     public ValuationResponse calculateValuation(ValuationRequest request) {
+        long start = System.currentTimeMillis();
+        log.info("Executing valuation pipeline for company='{}', calibration_date='{}', valuation_date='{}'",
+                request.getCompanyName(), request.getCalibrationDate(), request.getValuationDate());
+
         List<String> issues = validationService.validateValuationRequest(request);
         if (!issues.isEmpty()) {
+            if (meterRegistry != null) {
+                meterRegistry.counter("valuation.validation.failures").increment();
+            }
+            log.warn("Valuation request validation failed with {} issues: {}", issues.size(), issues);
             throw new IllegalArgumentException(String.join("; ", issues));
         }
 
@@ -209,6 +253,14 @@ public class ValuationPipelineService {
         response.setHoldings(holdings);
         response.setCalibrationVolatility(null);
         response.setValuationVolatility(null);
+
+        long duration = System.currentTimeMillis() - start;
+        log.info("Completed valuation pipeline for company='{}' in {} ms with concluded_equity={}",
+                request.getCompanyName(), duration, concludedEquity);
+        if (meterRegistry != null) {
+            meterRegistry.timer("valuation.calculation.timer").record(duration, TimeUnit.MILLISECONDS);
+            meterRegistry.counter("valuation.calculation.count").increment();
+        }
 
         return response;
     }

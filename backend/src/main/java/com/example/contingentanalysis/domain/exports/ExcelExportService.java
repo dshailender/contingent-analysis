@@ -1,22 +1,43 @@
 package com.example.contingentanalysis.domain.exports;
 
 import com.example.contingentanalysis.domain.model.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ExcelExportService {
 
+    private static final Logger log = LoggerFactory.getLogger(ExcelExportService.class);
+    private final MeterRegistry meterRegistry;
+
+    public ExcelExportService() {
+        this(null);
+    }
+
+    @Autowired
+    public ExcelExportService(@Autowired(required = false) MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
     public byte[] generateValuationWorkbook(ValuationResponse response) {
+        long start = System.currentTimeMillis();
+        log.info("Generating Excel valuation workbook for company='{}'",
+                response != null ? response.getCompanyName() : "unknown");
+
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             byte[] navyBytes = new byte[]{(byte) 0x17, (byte) 0x24, (byte) 0x2B};
             byte[] tealBytes = new byte[]{(byte) 0x0B, (byte) 0x6B, (byte) 0x68};
@@ -492,7 +513,15 @@ public class ExcelExportService {
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             wb.write(out);
-            return out.toByteArray();
+            byte[] result = out.toByteArray();
+            long duration = System.currentTimeMillis() - start;
+            log.info("Generated Excel valuation workbook for company='{}' in {} ms (size: {} bytes)",
+                    response != null ? response.getCompanyName() : "unknown", duration, result.length);
+            if (meterRegistry != null) {
+                meterRegistry.timer("export.excel.timer").record(duration, TimeUnit.MILLISECONDS);
+                meterRegistry.counter("export.excel.count").increment();
+            }
+            return result;
         } catch (IOException e) {
             throw new RuntimeException("Failed to generate valuation workbook: " + e.getMessage(), e);
         }

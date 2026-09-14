@@ -1,13 +1,15 @@
 package com.example.contingentanalysis.api;
 
-import com.example.contingentanalysis.domain.date.DateMath;
 import com.example.contingentanalysis.domain.model.RiskFreeRateAnalysis;
-import com.example.contingentanalysis.domain.model.YieldCurvePoint;
 import com.example.contingentanalysis.domain.riskfree.RiskFreeRateService;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -20,9 +22,13 @@ public class RiskFreeRatesController {
     }
 
     public static class InterpolateRequest {
+        @NotBlank(message = "As-of date is required")
+        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "As-of date must be YYYY-MM-DD")
         @JsonProperty("as_of_date")
         private String asOfDate;
 
+        @NotBlank(message = "Exit date is required")
+        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Exit date must be YYYY-MM-DD")
         @JsonProperty("exit_date")
         private String exitDate;
 
@@ -67,35 +73,13 @@ public class RiskFreeRatesController {
     }
 
     @PostMapping("/risk-free-rates/interpolate")
-    public RiskFreeRateAnalysis interpolateRate(@RequestBody InterpolateRequest req) {
-        double term = DateMath.yearFraction(req.getAsOfDate(), req.getExitDate(), req.getDayCountBasis());
-        if (term <= 0.0) {
-            throw new IllegalArgumentException("Exit date must be after as-of date.");
-        }
-
-        List<double[]> pointDoubles = new ArrayList<>();
-        List<YieldCurvePoint> curvePoints = new ArrayList<>();
-
-        if (req.getPoints() != null) {
-            for (List<Double> p : req.getPoints()) {
-                if (p != null && p.size() >= 2) {
-                    double tenor = p.get(0);
-                    double rate = p.get(1);
-                    pointDoubles.add(new double[]{tenor, rate});
-                    curvePoints.add(new YieldCurvePoint(String.format(Locale.US, "%.2fy", tenor), tenor, rate));
-                }
-            }
-        }
-
-        RiskFreeRateService.InterpolationResult interp = riskFreeRateService.interpolateYieldCurve(pointDoubles, term);
-
-        return riskFreeRateService.buildRiskFreeAnalysis(
+    public RiskFreeRateAnalysis interpolateRate(@Valid @RequestBody InterpolateRequest req) {
+        return riskFreeRateService.calculateInterpolatedAnalysis(
                 req.getAsOfDate(),
                 req.getExitDate(),
-                interp.ratePercent(),
+                req.getDayCountBasis(),
                 req.getSourceName(),
-                curvePoints,
-                req.getDayCountBasis()
+                req.getPoints()
         );
     }
 }

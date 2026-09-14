@@ -115,5 +115,40 @@ public class RiskFreeRateService {
                 meta
         );
     }
+
+    public RiskFreeRateAnalysis calculateInterpolatedAnalysis(String asOfDate,
+                                                             String exitDate,
+                                                             int dayCountBasis,
+                                                             String sourceName,
+                                                             List<List<Double>> rawPoints) {
+        double term = DateMath.yearFraction(asOfDate, exitDate, dayCountBasis);
+        if (term <= 0.0) {
+            throw new IllegalArgumentException("Exit date must be after as-of date.");
+        }
+
+        List<double[]> pointDoubles = new ArrayList<>();
+        List<YieldCurvePoint> curvePoints = new ArrayList<>();
+
+        if (rawPoints != null) {
+            for (List<Double> p : rawPoints) {
+                if (p != null && p.size() >= 2) {
+                    double tenor = p.get(0);
+                    double rate = p.get(1);
+                    pointDoubles.add(new double[]{tenor, rate});
+                    curvePoints.add(new YieldCurvePoint(String.format(Locale.US, "%.2fy", tenor), tenor, rate));
+                }
+            }
+        }
+
+        InterpolationResult interp = interpolateYieldCurve(pointDoubles, term);
+        return buildRiskFreeAnalysis(
+                asOfDate,
+                exitDate,
+                interp.ratePercent(),
+                sourceName,
+                curvePoints,
+                dayCountBasis
+        );
+    }
 }
 

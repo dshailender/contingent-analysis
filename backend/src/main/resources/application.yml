@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: contingent-claims-valuation-engine
+  modulith:
+    detection-strategy: explicitly-annotated
   jackson:
     property-naming-strategy: SNAKE_CASE
     default-property-inclusion: ALWAYS
@@ -12,9 +14,29 @@ spring:
       max-file-size: 15MB
       max-request-size: 20MB
 
+app:
+  security:
+    enabled: ${APP_SECURITY_ENABLED:false}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200,http://localhost:8000,http://127.0.0.1:8000}
+  upload:
+    max-file-size: 15MB
+    allowed-extensions: xlsx,xlsm
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: false
 
+logging:
+  pattern:
+    level: "%5p [reqId=%X{requestId:-}]"

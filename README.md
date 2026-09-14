@@ -10,47 +10,59 @@ Implemented on **Java 25** and **Spring Boot 4.x** with full numerical parity, t
 
 ```
 contingent-analysis/
-├── backend/                             # Java 25 + Spring Boot 4.x Valuation Engine (Maven)
-│   ├── pom.xml                          # Dependencies: Spring Boot 4.1.1, Apache POI 5.5.0, Playwright 1.58.0, Commons Math 3.6.1, PDFBox 3.0.4
+├── backend/                             # Java 25 + Spring Boot 4.1.1 + Spring Modulith 2.1.1 Engine (Maven)
+│   ├── pom.xml                          # Dependencies: Spring Boot 4.1.1, Spring Modulith 2.1.1, Spring Security 7.1.1, Apache POI 5.5.0, Playwright 1.58.0, Commons Math 3.6.1, PDFBox 3.0.4
 │   └── src/
 │       ├── main/
 │       │   ├── java/com/example/contingentanalysis/
-│       │   │   ├── api/                 # Spring Web MVC REST Controllers
+│       │   │   ├── api/                 # Spring Modulith Module: REST Controllers & Error Handling
 │       │   │   │   ├── CalculateController.java     # /api/calculate, /api/validate, /api/scenario/default, /api/basis-conventions
 │       │   │   │   ├── ExportController.java        # /api/exports/excel, /api/exports/pdf
 │       │   │   │   ├── RiskFreeRatesController.java # /api/risk-free-rates/curves, /interpolate
 │       │   │   │   ├── CapitalIqController.java     # /api/capital-iq/workbook, /upload
 │       │   │   │   ├── HealthController.java        # /api/health
 │       │   │   │   ├── FrontendController.java      # Static Angular mount & SPA routing
-│       │   │   │   └── ApiExceptionHandler.java     # Global REST exception advice (HTTP 400/500)
-│       │   │   ├── config/              # Web MVC, CORS, and Jackson configuration
-│       │   │   ├── domain/              # Pure Java Valuation Domain Layer
+│       │   │   │   ├── ApiExceptionHandler.java     # Centralized REST exception advice (HTTP 400/404/500)
+│       │   │   │   ├── ApiErrorResponse.java        # Structured error payload with requestId & detail
+│       │   │   │   └── package-info.java            # Modulith module definition (allowedDependencies = pipeline, defaultscenario, riskfree, capitaliq, exports, model)
+│       │   │   ├── config/              # Web MVC, Security, MDC Correlation ID, Request Logging
+│       │   │   │   ├── SecurityConfig.java          # CSP, X-Frame-Options: DENY, nosniff, CORS allowlist, Actuator protection
+│       │   │   │   ├── CorrelationIdFilter.java     # X-Request-Id / X-Correlation-Id propagation & MDC tracing
+│       │   │   │   ├── RequestLoggingFilter.java    # Structured access logging with duration and status
+│       │   │   │   └── WebMvcConfig.java            # Configurable CORS allowlist and JSON mapper
+│       │   │   ├── domain/              # Modular Domain Architecture (16 Spring Modulith modules)
 │       │   │   │   ├── blackscholes/    # Analytical European call, N(d1), continuous compounding
 │       │   │   │   ├── breakpoints/     # Seniority LP schedule, conversion, warrant exercise
-│       │   │   │   ├── capitaliq/       # Capital IQ plugin template generator & parser
+│       │   │   │   ├── capitaliq/       # Capital IQ plugin template generator, parser & Zip bomb guards
 │       │   │   │   ├── capitalization/  # Derivation, simple & compound dividend accruals
 │       │   │   │   ├── claims/          # Dollar & percentage claims across breakpoint tiers
 │       │   │   │   ├── date/            # 5 Day-count conventions (US 30/360, Act/Act, Act/360, Act/365, Euro 30/360)
 │       │   │   │   ├── defaultscenario/ # Canonical pre-populated TADO valuation scenario
-│       │   │   │   ├── exports/         # Apache POI Excel workbook & Playwright landscape PDF with watermark
+│       │   │   │   ├── exports/         # Excel workbook & Playwright PDF with anti-SSRF route abort
 │       │   │   │   ├── holdings/        # Multi-fund position aggregation & MOIC
-│       │   │   │   ├── model/           # Strongly-typed domain models matching TypeScript contracts
+│       │   │   │   ├── model/           # Open domain models matching TypeScript contracts
 │       │   │   │   ├── opm/             # Incremental call tranches & Brent's root-finder backsolve
-│       │   │   │   ├── pipeline/        # End-to-end execution orchestrator
+│       │   │   │   ├── pipeline/        # End-to-end execution orchestrator & Micrometer timers
 │       │   │   │   ├── riskfree/        # US Treasury & ECB yield curve interpolation
 │       │   │   │   ├── validation/      # Cap table consistency & input validation
 │       │   │   │   ├── volatility/      # Merton asset volatility delevering & relevering
 │       │   │   │   └── waterfall/       # Sequential liquidation & comparative pro-rata distribution
-│       │   │   └── ContingentAnalysisApplication.java # Spring Boot application entrypoint
+│       │   │   └── ContingentAnalysisApplication.java # Spring Modulithic entrypoint
 │       │   └── resources/
-│       │       └── application.yml      # Server port 8000, Jackson snake_case property naming
+│       │       └── application.yml      # Server port 8000, snake_case JSON, Modulith explicitly-annotated strategy, MDC logging
 │       └── test/
 │           └── java/com/example/contingentanalysis/
-│               ├── ApiEndpointsTest.java         # 8 MockMvc integration tests for all REST endpoints
-│               ├── BoundaryConditionsTest.java   # 10 Boundary and mathematical edge condition tests
-│               ├── ExportsTest.java              # 2 Tests verifying 7-sheet Excel and watermarked PDF exports
-│               ├── GoldenReconciliationTest.java # 6 Canonical numerical parity reconciliation tests
-│               └── PipelineTest.java             # 1 Full end-to-end pipeline test
+│               ├── ApiEndpointsTest.java          # 8 MockMvc integration tests for all REST endpoints
+│               ├── ApiExceptionHandlerTest.java   # 5 Centralized exception handling & validation error tests
+│               ├── ApplicationModulesTest.java    # 3 Spring Modulith verification & PlantUML doc generator tests
+│               ├── BoundaryConditionsTest.java    # 10 Boundary and mathematical edge condition tests
+│               ├── ConcurrentPipelineTest.java    # 1 Multi-threaded concurrent valuation thread-safety test
+│               ├── CorrelationIdFilterTest.java   # 4 Request-Id header propagation, UUID generation, & MDC tests
+│               ├── ExportsTest.java               # 2 Tests verifying 7-sheet Excel and watermarked PDF exports
+│               ├── FileUploadSecurityTest.java    # 4 File upload validation, zip bomb & path traversal tests
+│               ├── GoldenReconciliationTest.java  # 6 Canonical numerical parity reconciliation tests
+│               ├── PipelineTest.java              # 1 Full end-to-end pipeline test
+│               └── SecurityConfigurationTest.java # 5 Security headers, CORS allowlist & Actuator tests
 ├── frontend/                            # Angular 22 Standalone Application
 │   ├── src/
 │   │   ├── app/
@@ -84,12 +96,18 @@ contingent-analysis/
 cd backend
 mvn clean test
 ```
-All 27 test cases will execute:
-- Golden reference numerical parity tests
-- Boundary conditions and edge cases
-- Apache POI multi-sheet Excel workbook export tests
-- Playwright landscape PDF watermarking tests
-- Full MockMvc REST API integration tests
+All 49 test cases across 11 test suites will execute:
+- Golden reference numerical parity tests (`GoldenReconciliationTest`)
+- Boundary conditions and edge cases (`BoundaryConditionsTest`)
+- Apache POI multi-sheet Excel workbook export tests (`ExportsTest`)
+- Playwright landscape PDF watermarking tests (`ExportsTest`)
+- Full MockMvc REST API integration tests (`ApiEndpointsTest`)
+- Spring Modulith module verification & PlantUML doc generator (`ApplicationModulesTest`)
+- Centralized exception handling & validation tests (`ApiExceptionHandlerTest`)
+- Security headers, CORS allowlist & Actuator tests (`SecurityConfigurationTest`)
+- Correlation ID propagation & MDC tracing tests (`CorrelationIdFilterTest`)
+- Multipart upload validation, Zip bomb & path traversal tests (`FileUploadSecurityTest`)
+- Multi-threaded concurrent valuation thread-safety tests (`ConcurrentPipelineTest`)
 
 ### 2. Frontend Development & Build
 ```powershell

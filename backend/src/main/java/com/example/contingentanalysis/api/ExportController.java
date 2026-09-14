@@ -34,7 +34,22 @@ public class ExportController {
         this.objectMapper = objectMapper;
     }
 
+    private String sanitizeFilename(String companyName, String extension) {
+        String base = (companyName != null) ? companyName.trim() : "";
+        base = base.replaceAll("[^a-zA-Z0-9_-]", "_");
+        if (base.isEmpty()) {
+            base = "Company";
+        }
+        if (base.length() > 60) {
+            base = base.substring(0, 60);
+        }
+        return base + "_Valuation_Report." + extension;
+    }
+
     private ValuationResponse ensureResponse(JsonNode node) {
+        if (node == null || node.isNull() || !node.isObject() || node.isEmpty()) {
+            throw new IllegalArgumentException("Export request payload must not be empty.");
+        }
         if (node.has("concluded_equity_value") || node.has("calibration_solved_equity")) {
             return objectMapper.convertValue(node, ValuationResponse.class);
         } else {
@@ -47,11 +62,15 @@ public class ExportController {
     public ResponseEntity<byte[]> exportExcelReport(@RequestBody JsonNode payload) {
         ValuationResponse res = ensureResponse(payload);
         byte[] excelBytes = excelExportService.generateValuationWorkbook(res);
-        String filename = (res.getCompanyName() != null ? res.getCompanyName().replace(' ', '_') : "Company") + "_Valuation_Report.xlsx";
+        String filename = sanitizeFilename(res.getCompanyName(), "xlsx");
+        String contentDisposition = org.springframework.http.ContentDisposition.attachment()
+                .filename(filename, java.nio.charset.StandardCharsets.UTF_8)
+                .build()
+                .toString();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
                 .body(excelBytes);
     }
 
@@ -59,11 +78,15 @@ public class ExportController {
     public ResponseEntity<byte[]> exportPdfReport(@RequestBody JsonNode payload) {
         ValuationResponse res = ensureResponse(payload);
         byte[] pdfBytes = pdfExportService.generateValuationPdf(res);
-        String filename = (res.getCompanyName() != null ? res.getCompanyName().replace(' ', '_') : "Company") + "_Valuation_Report.pdf";
+        String filename = sanitizeFilename(res.getCompanyName(), "pdf");
+        String contentDisposition = org.springframework.http.ContentDisposition.attachment()
+                .filename(filename, java.nio.charset.StandardCharsets.UTF_8)
+                .build()
+                .toString();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
                 .body(pdfBytes);
     }
 }

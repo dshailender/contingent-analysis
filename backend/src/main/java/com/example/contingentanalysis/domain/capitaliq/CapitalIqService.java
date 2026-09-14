@@ -4,11 +4,16 @@ import com.example.contingentanalysis.domain.model.ComparableCompanyVol;
 import com.example.contingentanalysis.domain.model.VolatilityAnalysisResult;
 import com.example.contingentanalysis.domain.model.VolatilityStats;
 import com.example.contingentanalysis.domain.volatility.VolatilityService;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -19,10 +24,19 @@ import java.util.*;
 @Service
 public class CapitalIqService {
 
+    private static final Logger log = LoggerFactory.getLogger(CapitalIqService.class);
+
     private final VolatilityService volatilityService;
+    private final MeterRegistry meterRegistry;
 
     public CapitalIqService(VolatilityService volatilityService) {
+        this(volatilityService, null);
+    }
+
+    @Autowired
+    public CapitalIqService(VolatilityService volatilityService, @Autowired(required = false) MeterRegistry meterRegistry) {
         this.volatilityService = volatilityService;
+        this.meterRegistry = meterRegistry;
     }
 
     public byte[] createCapitalIqBridgeWorkbook(List<String> tickers,
@@ -176,10 +190,17 @@ public class CapitalIqService {
                                                                        double subjectDebt,
                                                                        double subjectPref,
                                                                        long maxFileSizeBytes) {
+        if (fileBytes == null || fileBytes.length == 0) {
+            throw new IllegalArgumentException("File bytes must not be empty.");
+        }
         if (fileBytes.length > maxFileSizeBytes) {
             throw new IllegalArgumentException(String.format("Uploaded file exceeds maximum limit of %.0fMB",
                     maxFileSizeBytes / (1024.0 * 1024.0)));
         }
+
+        long start = System.currentTimeMillis();
+        ZipSecureFile.setMinInflateRatio(0.01);
+        log.info("Parsing Capital IQ workbook (size: {} bytes)", fileBytes.length);
 
         try (Workbook wb = WorkbookFactory.create(new ByteArrayInputStream(fileBytes))) {
             Map<String, VolatilityAnalysisResult> results = new LinkedHashMap<>();
@@ -327,9 +348,19 @@ public class CapitalIqService {
                 results.put(label, var);
             }
 
+            long duration = System.currentTimeMillis() - start;
+            log.info("Successfully parsed Capital IQ workbook in {} ms", duration);
+            if (meterRegistry != null) {
+                meterRegistry.timer("capitaliq.upload.timer").record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
+                meterRegistry.counter("capitaliq.upload.count").increment();
+            }
             return results;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid Excel workbook: " + e.getMessage(), e);
+            if (meterRegistry != null) {
+                meterRegistry.counter("capitaliq.upload.failures").increment();
+            }
+            log.warn("Failed to parse Capital IQ workbook: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid or malformed Excel workbook: " + (e.getMessage() != null ? e.getMessage() : "corrupted"));
         }
     }
 

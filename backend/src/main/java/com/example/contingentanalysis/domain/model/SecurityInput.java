@@ -2,30 +2,41 @@ package com.example.contingentanalysis.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 public class SecurityInput {
     @NotBlank(message = "Security name is required")
+    @Size(max = 255, message = "Security name exceeds 255 characters")
     private String security;
 
+    @Size(max = 100, message = "Security subtype exceeds 100 characters")
     @JsonProperty("security_subtype")
     private String securitySubtype = "Preferred Stock";
 
+    @PositiveOrZero(message = "Shares must be non-negative")
     private double shares = 0.0;
 
+    @PositiveOrZero(message = "Exercise price must be non-negative")
     @JsonProperty("exercise_price")
     private Double exercisePrice;
 
+    @PositiveOrZero(message = "Original issue price must be non-negative")
     @JsonProperty("original_issue_price")
     private Double originalIssuePrice;
 
+    @PositiveOrZero(message = "Conversion price must be non-negative")
     @JsonProperty("conversion_price")
     private Double conversionPrice;
 
+    @PositiveOrZero(message = "Liquidation multiplier must be non-negative")
     @JsonProperty("liquidation_multiplier")
     private Double liquidationMultiplier = 1.0;
 
+    @Size(max = 50, message = "Participation exceeds 50 characters")
     private String participation = "NA";
 
+    @Size(max = 50, message = "Max participation cap exceeds 50 characters")
     @JsonProperty("max_participation_cap")
     private String maxParticipationCap = "NA";
 
@@ -34,12 +45,15 @@ public class SecurityInput {
     @JsonProperty("issue_date")
     private String issueDate;
 
+    @PositiveOrZero(message = "Dividend rate must be non-negative")
     @JsonProperty("dividend_rate")
     private Double dividendRate;
 
+    @Size(max = 50, message = "Compounding convention exceeds 50 characters")
     @JsonProperty("compounding_convention")
     private String compoundingConvention = "Annual";
 
+    @PositiveOrZero(message = "Dividends paid to date must be non-negative")
     @JsonProperty("dividends_paid_to_date")
     private Double dividendsPaidToDate = 0.0;
 
